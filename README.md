@@ -5,6 +5,7 @@ OncoVisionX is an AI-powered system for automated Non-Small Cell Lung Cancer (NS
 - 🔬 **Pathology**: Whole Slide Images (WSI)
 - 🫁 **Radiology**: CT Scans
 - 📊 **Clinical**: Patient demographics and lab values
+Genomics :patient genomics like rna sequence and mutation
 
 **Target Performance:** 90%+ staging accuracy
 **Dataset:** TCGA-LUAD (The Cancer Genome Atlas - Lung Adenocarcinoma)
@@ -51,4 +52,4 @@ MIT License - See LICENSE file for details
 - Open-source medical imaging community
 
 ---
-*Last Updated: October 31, 2025*
+*Last Updated: Novemebr 15, 2025*
