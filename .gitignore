@@ -29,18 +29,54 @@ models/checkpoints/
 *.ckpt
 *.weights
 
+
+
+
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env.local
+
+# Build outputs
+frontend/.next/
+frontend/out/
+backend/dist/
+backend/build/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tensorboard/
+wandb/
+
+# OS files
+.DS_Store
+Thumbs.db
+
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
-.DS_Store
-Thumbs.db
+# Testing
+coverage/
 
-# Logs
-logs/
-*.log
-tensorboard/
-wandb/
+# Uploads (don't commit uploaded files)
+backend/uploads/
+
+# Misc
+.vercel
+*.pem
+
