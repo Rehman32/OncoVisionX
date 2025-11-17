@@ -25,9 +25,9 @@ OncoVisionX is an AI-powered system for automated Non-Small Cell Lung Cancer (NS
 
 ## 📁 Project Structure
 OncoVisionX/
-├── notebooks/ # Google Colab notebooks
-├── src/ # Source code modules
-├── configs/ # Configuration files
+├── ai_models/ # Google Colab notebooks related to ai
+├── frontend/ # frontend files
+├── backend/ # backend files
 ├── docs/ # Documentation
 ├── results/ # Experiment results
 └── README.md # This file
