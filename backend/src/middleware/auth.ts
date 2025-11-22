@@ -1,79 +1,67 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../utils/jwt';
-import { UnauthorizedError, ForbiddenError } from '../utils/errors';
-import User from '../models/User';
+import { Request,Response,NextFunction } from "express";
+import User from "../models/User";
+import { verifyAccessToken } from "../utils/jwt";
+import { ForbiddenError, UnauthorizedError } from "../utils/errors";
 
 declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        userId: string;
-        email: string;
-        role: 'admin' | 'doctor' | 'researcher';
-      };
+    namespace Express{
+        interface Request{
+            user? : {
+                userId : string;
+                email : string;
+                role : 'admin' | 'doctor' | 'researcher'
+            }
+        }
     }
-  }
 }
 
+//protect routes
+export const protect =async (req:Request,res:Response,next:NextFunction) :Promise<void> => {
+    try {
+        const authHeader = req.headers.authorization;
+        if(!authHeader || !authHeader.startsWith('Bearer ')){
+            throw new UnauthorizedError('No token is provided. Please Log in ')
+        }
+        const token = authHeader.split(' ')[1];
 
-export const protect = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    // Get token from Authorization header
-    // Format: "Bearer <token>"
-    const authHeader = req.headers.authorization;
+        if(!token){
+            throw new UnauthorizedError('Invalid format of token');
+        }
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedError('No token provided. Please log in.');
-    }
+        //verify token
+        const decoded = verifyAccessToken(token);
 
-    // Extract token (remove "Bearer " prefix)
-    const token = authHeader.split(' ')[1];
+        const user = await User.findById(decoded.userId);
 
-    if (!token) {
-      throw new UnauthorizedError('Invalid token format');
-    }
-
-    // Verify token
-    const decoded = verifyAccessToken(token);
-
-    // Check if user still exists
-    const user = await User.findById(decoded.userId);
-
-    if (!user) {
+        if (!user) {
       throw new UnauthorizedError('User no longer exists');
     }
 
-    // Check if user is active
     if (!user.isActive) {
       throw new UnauthorizedError('User account is deactivated');
     }
 
-    // Attach user to request object
-    req.user = {
-      userId: decoded.userId,
-      email: decoded.email,
-      role: decoded.role
+    req.user ={
+        userId : decoded.userId,
+        email: decoded.email,
+        role: decoded.role
     };
+    next();
 
-    next(); // Proceed to next middleware/controller
-  } catch (error) {
-    next(error);
-  }
+    } catch (error) {
+        next(error);
+    }
 };
 
-
+//authorize based on user roles
 export const authorize = (...roles: ('admin' | 'doctor' | 'researcher')[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    // Check if user exists (should be set by protect middleware)
+     
     if (!req.user) {
       return next(new UnauthorizedError('User not authenticated'));
     }
 
-    // Check if user's role is in allowed roles
+     
     if (!roles.includes(req.user.role)) {
       return next(
         new ForbiddenError(
@@ -82,11 +70,13 @@ export const authorize = (...roles: ('admin' | 'doctor' | 'researcher')[]) => {
       );
     }
 
-    next(); // User is authorized, proceed
+    next(); 
   };
 };
 
 
+//Optional authentication 
+ 
 export const optionalAuth = async (
   req: Request,
   res: Response,
@@ -112,13 +102,12 @@ export const optionalAuth = async (
             };
           }
         } catch (error) {
-          // Token invalid, but that's okay for optional auth
-          // Just proceed without user
+          
         }
       }
     }
 
-    next(); // Always proceed, with or without user
+    next(); 
   } catch (error) {
     next(error);
   }

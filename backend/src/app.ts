@@ -4,12 +4,18 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
+//import routes
+import authRoutes from './routes/authRoutes';
+
+//import middlewares
+import { errorHandler, notFound } from './middleware/errorHandler';
+
+
 //express app
 const app: Application = express();
 
 //security middleware
 app.use(helmet());
-
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -30,8 +36,8 @@ const limiter = rateLimit({
 
 app.use("/api", limiter);
 
+//body parser
 app.use(express.json({ limit: "10mb" }));
-
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 //logging
@@ -63,25 +69,16 @@ app.get('/api', (_req: Request, res: Response) => {
   });
 });
 
+// API ROUTES 
+app.use('/api/auth', authRoutes);
+
 
 //error handliing
-// route not found
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
 
-//global error
-app.use((err: any, _req: Request, res: Response, _next: any) => {
-  console.error(err.stack);
-  
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
+// 404 handler
+app.use(notFound);
+
+// Global error handler
+app.use(errorHandler);
 
 export default app;
