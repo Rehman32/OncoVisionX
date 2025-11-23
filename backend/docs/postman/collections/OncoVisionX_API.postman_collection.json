@@ -1,0 +1,287 @@
+{
+  "info": {
+    "_postman_id": "7164b44d-9877-4af1-a25e-ea357c9e7fe3",
+    "name": "OncoVisionX",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "health-check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "677eee86-44de-4050-80a3-0600c82d74f0",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "id": "000f06c7-823d-4bb6-a9dc-d6b622a7c7b0",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:5000/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "register",
+      "id": "aef93c1a-13be-42d8-93da-3e9e2709330b",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"dr.salman@example.com\",\r\n  \"password\": \"SecurePass123\",\r\n  \"firstName\": \"Salman\",\r\n  \"lastName\": \"Khan\",\r\n  \"role\": \"doctor\",\r\n  \"phoneNumber\": \"+923193456654\",\r\n  \"licenseNumber\": \"MD-12345\",\r\n  \"institution\": \"ALI Medical Complex\",\r\n  \"department\": \"Oncology\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      }
+    },
+    {
+      "name": "register",
+      "id": "3f3bba94-dde6-415e-b3e5-8968eb1de213",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"admin@oncovisionx.com\",\r\n  \"password\": \"AdminPass123\",\r\n  \"firstName\": \"Admin\",\r\n  \"lastName\": \"User\",\r\n  \"role\": \"admin\",\r\n  \"institution\": \"OncoVisionX\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      }
+    },
+    {
+      "name": "login",
+      "id": "f43f0dad-e697-46cb-b6e7-84c634f8026c",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTk0YzBlNzg4ZWJiYmRlNTJkOTIiLCJlbWFpbCI6ImRyLnNhbG1hbkBleGFtcGxlLmNvbSIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjM4NDIzODEsImV4cCI6MTc2NDQ0NzE4MSwiYXVkIjoiT25jb1Zpc2lvblgtdXNlcnMiLCJpc3MiOiJPbmNvVmlzaW9uWCJ9.jI0CV89y5pxaVJ-5zB1Z2L-6R34RiKaXNshqy6SfueY",
+            "type": "text",
+            "uuid": "a468ed02-5571-4e86-878f-208241cf2a63"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"dr.salman@example.com\",\r\n  \"password\": \"SecurePass123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "auth-me",
+      "id": "e5b902a3-fb69-4919-af22-f5788fea61cc",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTk0YzBlNzg4ZWJiYmRlNTJkOTIiLCJlbWFpbCI6ImRyLnNhbG1hbkBleGFtcGxlLmNvbSIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjM4NDIzODEsImV4cCI6MTc2NDQ0NzE4MSwiYXVkIjoiT25jb1Zpc2lvblgtdXNlcnMiLCJpc3MiOiJPbmNvVmlzaW9uWCJ9.jI0CV89y5pxaVJ-5zB1Z2L-6R34RiKaXNshqy6SfueY",
+            "type": "text",
+            "uuid": "10fe2e7c-3085-4992-a30a-42acc8437ee8"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/auth/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "update-profile",
+      "id": "9ca4a918-5f21-4257-8449-4ed3c8f51006",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTk0YzBlNzg4ZWJiYmRlNTJkOTIiLCJlbWFpbCI6ImRyLnNhbG1hbkBleGFtcGxlLmNvbSIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjM4NDIzODEsImV4cCI6MTc2NDQ0NzE4MSwiYXVkIjoiT25jb1Zpc2lvblgtdXNlcnMiLCJpc3MiOiJPbmNvVmlzaW9uWCJ9.jI0CV89y5pxaVJ-5zB1Z2L-6R34RiKaXNshqy6SfueY",
+            "type": "text",
+            "uuid": "99eafe61-d30d-49ea-8b5a-becb5ea0d22b"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"phoneNumber\": \"+923456878880\",\r\n  \"department\": \"Pulmonary Oncology\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/update-profile",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "update-profile"
+          ]
+        }
+      }
+    },
+    {
+      "name": "change-password",
+      "id": "2c44fe91-a3a4-4aea-bdb3-7bb769ce0078",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTk0YzBlNzg4ZWJiYmRlNTJkOTIiLCJlbWFpbCI6ImRyLnNhbG1hbkBleGFtcGxlLmNvbSIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjM4NDIzODEsImV4cCI6MTc2NDQ0NzE4MSwiYXVkIjoiT25jb1Zpc2lvblgtdXNlcnMiLCJpc3MiOiJPbmNvVmlzaW9uWCJ9.jI0CV89y5pxaVJ-5zB1Z2L-6R34RiKaXNshqy6SfueY",
+            "type": "text",
+            "uuid": "bc930961-a8e6-4289-bf17-ee209f12c4f6"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"currentPassword\": \"SecurePass123\",\r\n  \"newPassword\": \"NewSecurePass456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/change-password",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "change-password"
+          ]
+        }
+      }
+    },
+    {
+      "name": "refresh-token",
+      "id": "66bf9a9d-743d-4ff6-9e4b-cd4c900533a5",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTk0YzBlNzg4ZWJiYmRlNTJkOTIiLCJlbWFpbCI6ImRyLnNhbG1hbkBleGFtcGxlLmNvbSIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjM4NDI2MjEsImV4cCI6MTc2NjQzNDYyMSwiYXVkIjoiT25jb1Zpc2lvblgtdXNlcnMiLCJpc3MiOiJPbmNvVmlzaW9uWCJ9.4_F4iCneOHBQiRp6lHpb8R9sZ8UUBkn8W8GuK5hTzVc\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/refresh-token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "refresh-token"
+          ]
+        }
+      }
+    },
+    {
+      "name": "auth-me",
+      "id": "87d18ac0-416f-43a1-9390-53b8f4c6b650",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:5000/api/auth/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      }
+    }
+  ]
+}
