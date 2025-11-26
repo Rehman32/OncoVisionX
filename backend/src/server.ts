@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import connectDatabase from './config/database';
 import app from './app';
 import { logger } from './utils/logger';
+import { initGridFS } from './config/gridfs';
 dotenv.config();
 
 // validate required env variables
@@ -19,6 +20,7 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
     try {
         await connectDatabase();
+        initGridFS();
         const server = app.listen(PORT,() => {
              logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
             logger.info(` API URL: http://localhost:${PORT}/api`);
