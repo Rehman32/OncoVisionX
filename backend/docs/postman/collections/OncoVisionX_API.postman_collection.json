@@ -104,13 +104,12 @@
           {
             "key": "Authorization",
             "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTk0YzBlNzg4ZWJiYmRlNTJkOTIiLCJlbWFpbCI6ImRyLnNhbG1hbkBleGFtcGxlLmNvbSIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjM4NDIzODEsImV4cCI6MTc2NDQ0NzE4MSwiYXVkIjoiT25jb1Zpc2lvblgtdXNlcnMiLCJpc3MiOiJPbmNvVmlzaW9uWCJ9.jI0CV89y5pxaVJ-5zB1Z2L-6R34RiKaXNshqy6SfueY",
-            "type": "text",
-            "uuid": "a468ed02-5571-4e86-878f-208241cf2a63"
+            "type": "text"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"email\": \"dr.salman@example.com\",\r\n  \"password\": \"SecurePass123\"\r\n}",
+          "raw": "{\r\n    \"email\": \"dr.salman@example.com\",\r\n  \"password\": \"NewSecurePass456\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -279,6 +278,99 @@
             "api",
             "auth",
             "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-users",
+      "id": "82415ba6-1347-43e9-a7cd-85c4ef148d14",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTlkYjBlNzg4ZWJiYmRlNTJkOTUiLCJlbWFpbCI6ImFkbWluQG9uY292aXNpb254LmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDE0NDU4MSwiZXhwIjoxNzY0NzQ5MzgxLCJhdWQiOiJPbmNvVmlzaW9uWC11c2VycyIsImlzcyI6Ik9uY29WaXNpb25YIn0.S3-MYa32M-lrla4Z9QQqNUjf4KsgCHdVqqCX33H47-o",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin Listing Users",
+      "id": "93153a49-cd14-4193-bcd9-0aed8d1ab7e1",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTlkYjBlNzg4ZWJiYmRlNTJkOTUiLCJlbWFpbCI6ImFkbWluQG9uY292aXNpb254LmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDE0NDU4MSwiZXhwIjoxNzY0NzQ5MzgxLCJhdWQiOiJPbmNvVmlzaW9uWC11c2VycyIsImlzcyI6Ik9uY29WaXNpb25YIn0.S3-MYa32M-lrla4Z9QQqNUjf4KsgCHdVqqCX33H47-o",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/users?page=1&limit=10&search=",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "search",
+              "value": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-user-by-id",
+      "id": "3ac9a580-9834-44e2-b06e-d8c06fc3d0db",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTlkYjBlNzg4ZWJiYmRlNTJkOTUiLCJlbWFpbCI6ImFkbWluQG9uY292aXNpb254LmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDE0NDU4MSwiZXhwIjoxNzY0NzQ5MzgxLCJhdWQiOiJPbmNvVmlzaW9uWC11c2VycyIsImlzcyI6Ik9uY29WaXNpb25YIn0.S3-MYa32M-lrla4Z9QQqNUjf4KsgCHdVqqCX33H47-o",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/users/6922194c0e788ebbbde52d92",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "users",
+            "6922194c0e788ebbbde52d92"
           ]
         }
       }

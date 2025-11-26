@@ -10,8 +10,8 @@ router.use(protect, authorize('admin'));
 
 router.get('/', getAllUsers);
 router.get('/:id', getUser);
-router.put('/:id', updateUser, auditLogger('UPDATE_USER', 'user'));
-router.put('/:id/deactivate', deactivateUser, auditLogger('DEACTIVATE_USER', 'user'));
-router.put('/:id/activate', activateUser, auditLogger('ACTIVATE_USER', 'user'));
+router.put('/:id', auditLogger('UPDATE_USER', 'user'), updateUser);
+router.put('/:id/deactivate', auditLogger('DEACTIVATE_USER', 'user'), deactivateUser);
+router.put('/:id/activate', auditLogger('ACTIVATE_USER', 'user'), activateUser);
 
 export default router;

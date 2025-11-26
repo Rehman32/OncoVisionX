@@ -1,4 +1,5 @@
 import mongoose, { mongo } from "mongoose";
+import { logger } from '../utils/logger';
 
 //connect database
 const connectDatabase = async (): Promise<void> => {
@@ -19,37 +20,34 @@ const connectDatabase = async (): Promise<void> => {
     //connect to mongo db
     const conn = await mongoose.connect(mongouri, options);
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    console.log(` Database Name: ${conn.connection.name}`);
-
-
-    //handle connection events 
-    mongoose.connection.on("error", (err) => {
-      console.error(` MongoDB connection error: ${err}`);
+    logger.info('MongoDB connected', {
+      host: conn.connection.host,
+      database: conn.connection.name,
     });
 
-    mongoose.connection.on("disconnected", () => {
-      console.warn("  MongoDB disconnected. Attempting to reconnect...");
+    //handle connection events
+    mongoose.connection.on('error', (err) => {
+      logger.error('MongoDB connection error', { error: err instanceof Error ? err.message : err });
     });
-
-    mongoose.connection.on("reconnected", () => {
-      console.log("MongoDB reconnected");
+    mongoose.connection.on('disconnected', () => {
+      logger.warn('MongoDB disconnected. Attempting to reconnect...');
+    });
+    mongoose.connection.on('reconnected', () => {
+      logger.info('MongoDB reconnected');
     });
   } catch (error:any) {
-
-    console.error(`MongoDB connection failed: ${error.message}`);
+    logger.error('MongoDB connection failed', { error: error?.message ?? error });
     process.exit(1);
   }
 };
-
 
 //close database connection
 export const disconnectDatabase = async (): Promise<void> => {
   try {
     await mongoose.connection.close();
-    console.log('MongoDB connection closed');
+    logger.info('MongoDB connection closed');
   } catch (error: any) {
-    console.error(`Error closing MongoDB connection: ${error.message}`);
+    logger.error('Error closing MongoDB connection', { error: error?.message ?? error });
   }
 };
 

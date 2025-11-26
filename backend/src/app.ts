@@ -6,6 +6,8 @@ import rateLimit from "express-rate-limit";
 
 //import routes
 import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
+
 
 //import middlewares
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -71,6 +73,7 @@ app.get('/api', (_req: Request, res: Response) => {
 
 // API ROUTES 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 
 //error handliing

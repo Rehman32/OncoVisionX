@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { APIError } from '../utils/errors';
+import { logger } from '../utils/logger';
 
 /**
  * Global error handling middleware
@@ -11,12 +12,13 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  // Log error for debugging
-  console.error('❌ Error:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+  // Log error without PHI
+  logger.error('Request error', {
     path: req.path,
-    method: req.method
+    method: req.method,
+    statusCode: (err as any).statusCode || 500,
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 
   // Check if it's our custom APIError
