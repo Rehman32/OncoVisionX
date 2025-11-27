@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import path from 'path';
 
 const storage = new GridFsStorage({
-  url: process.env.MONGODB_URI || 'mongodb://localhost:27017/cancervision360',
+  url: process.env.MONGODB_URI || 'mongodb://localhost:27017/OncoVisionX',
   file: (req, file) => {
     return new Promise((resolve, reject) => {
       // Use random filename (never original—security!) and assign patient context
