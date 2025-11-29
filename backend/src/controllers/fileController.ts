@@ -1,42 +1,67 @@
-import { bucket } from "../config/gridfs";
-import crypto from "crypto";
-import mongoose from "mongoose";
-import { Request, Response, NextFunction } from "express";
+// backend/src/controllers/fileController.ts
+import { Request,Response,NextFunction } from "express";
+import { ValidationError } from "../utils/errors";
+const {v4:uuidv4} = require('uuid');
+const fs= require('fs');
+const path = require('path');
 
-export const uploadFile = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.file) return next(new Error("No file uploaded"));
+const allowedTypes = ['']
+const max_file_size= 0
+// 1. START UPLOAD SESSION
+export const startUpload = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Extract from req.body: fileName, fileType, totalSize, fileHash
+    const {fileName,fileType,totalSize,fileHash} = req.body;
+    // Validate: fileType in allowed list, totalSize < MAX_FILE_SIZE
+    if(!allowedTypes.includes(fileType)){
+      throw new ValidationError('File type is not supported')
 
-  const randomName = crypto.randomBytes(16).toString("hex");
+    }
+    if(!(totalSize<max_file_size)){
+      throw new ValidationError('file size is larger than max allowed size')
+    }
+    // Generate: unique sessionId
+    const uniqueSessionId= uuidv4();
 
-  const uploadStream = bucket.openUploadStream(randomName, {
-    metadata: {
-      uploadedBy: req.user?.userId,
-      patientId: req.body.patientId,
-      originalName: req.file.originalname,
-      mimeType: req.file.mimetype,
-    },
-  });
+    // Create: temporary folder in uploads/sessions/{sessionId}
+    const createTempraryFolder = (uniqueSessionId : any) =>{
+      const baseDir= path.join(__dirname,'uploads','sessions');
+      const sessionDir = path.join(baseDir,uniqueSessionId);
+      if(!fs.existsSync(baseDir)){
+        fs.mkdirSync(baseDir,{recursive :true })
+      }
 
-  uploadStream.end(req.file.buffer);
+      if(!fs.existsSync(sessionDir)){
+        fs.mkdirSync(sessionDir,{recursive: {true}})
+      }
 
-  uploadStream.on("finish", (file) => {
-    res.status(201).json({
-      success: true,
-      fileId: file._id,
-      filename: file.filename,
-      metadata: file.metadata,
-    });
-  });
-
-  uploadStream.on("error", (err) => next(err));
+      
+    }
+    // Save: metadata in database or temp file
+    
+    // Return: { sessionId, uploadedChunks: 0 }
+  } catch (err) { next(err); }
 };
 
-export const getFile = (req: Request, res: Response, next: NextFunction) => {
-  const id = new mongoose.Types.ObjectId(req.params.id);
+// 2. UPLOAD CHUNK
+export const uploadChunk = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Extract: sessionId, chunkNumber, file (from multer)
+    // Validate: sessionId exists, chunkNumber correct
+    // Save: chunk to uploads/sessions/{sessionId}/chunk-{chunkNumber}
+    // Return: { chunkNumber, nextChunkExpected: chunkNumber + 1 }
+  } catch (err) { next(err); }
+};
 
-  const stream = bucket.openDownloadStream(id);
-
-  stream.on("error", () => next(new Error("File not found")));
-
-  stream.pipe(res);
+// 3. COMPLETE UPLOAD
+export const completeUpload = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Extract: sessionId, fileHash (from frontend)
+    // Verify: all chunks exist
+    // Merge: all chunks into final file
+    // Validate: final file hash matches, type correct, size correct
+    // Store: metadata in Prediction or File collection
+    // Cleanup: delete temp folder
+    // Return: { fileId, message: 'Upload complete' }
+  } catch (err) { next(err); }
 };

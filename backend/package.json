@@ -28,6 +28,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "multer-gridfs-storage": "^5.0.2",
+    "uuid": "^13.0.0",
     "winston": "^3.18.3"
   },
   "devDependencies": {
