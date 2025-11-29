@@ -1,0 +1,17 @@
+Client (Frontend - Week 5)          Backend API (This Week)
+┌──────────────────────┐            ┌────────────────────────┐
+│ Select file (2GB WSI)│            │  POST /upload-start    │
+│ Split into chunks    │────────┐   │  Create temp session   │
+│ (5MB each)           │        └──▶│  Return sessionId      │
+│ Send chunk 1, 2, 3.. │            │                        │
+└──────────────────────┘   ┌────────▶│  POST /upload-chunk    │
+     User sees:            │        │  Verify chunk #        │
+     [====  40% done]      │        │  Save to disk/S3       │
+                           │        │  Return next chunk #   │
+                           │        │                        │
+                           └────────▶│  POST /upload-complete │
+                                     │  Merge chunks          │
+                                     │  Validate file         │
+                                     │  Store metadata in DB  │
+                                     │  Return fileId         │
+                                     └────────────────────────┘

@@ -1,14 +1,14 @@
 import mongoose from "mongoose";
-import Grid from "gridfs-stream";
+import { GridFSBucket } from "mongodb";
 
-export let gfs: Grid.Grid;
+export let bucket: GridFSBucket;
 
 export const initGridFS = () => {
   const conn = mongoose.connection;
 
-  // Attach the native MongoDB driver to Grid
-  gfs = Grid(conn.db, mongoose.mongo);
+  bucket = new mongoose.mongo.GridFSBucket(conn.db, {
+    bucketName: "uploads",
+  });
 
-  // Set the collection (bucket)
-  gfs.collection("uploads");
+  console.log("GridFS Initialized");
 };

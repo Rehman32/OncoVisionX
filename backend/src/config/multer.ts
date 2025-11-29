@@ -30,14 +30,18 @@ const storage = new GridFsStorage({
   }
 });
 
-export const upload = multer({ 
-  storage, 
-  limits: { fileSize: 1024 * 1024 * 1024 * 5 }, // 5GB max
+export const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // 5GB
   fileFilter: (req, file, cb) => {
-    // Accept only allowed MIME types (DICOM, WSI, etc.)
-    const allowed =
-      ['image/tiff', 'application/dicom', 'application/zip', 'text/csv', 'application/json'];
+    const allowed = [
+      "image/tiff",
+      "application/dicom",
+      "application/zip",
+      "text/csv",
+      "application/json",
+    ];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Unsupported file type'), false);
-  }
+    else cb(new Error("Unsupported file type"));
+  },
 });
