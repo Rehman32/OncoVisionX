@@ -38,7 +38,11 @@ export const startUpload = async (req: Request, res: Response, next: NextFunctio
       
     }
     // Save: metadata in database or temp file
-    
+    const metaData = {
+      fileType : fileType,
+      fileName: fileName,
+      size : totalSize
+    }
     // Return: { sessionId, uploadedChunks: 0 }
   } catch (err) { next(err); }
 };
