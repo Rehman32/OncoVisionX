@@ -10,6 +10,7 @@ export interface IPatient extends Document {
     firstName: string;
     lastName: string;
     dateOfBirth: Date;
+    age: number;
     gender: "male" | "female" | "other";
     bloodType?: string;
     contactNumber?: string;

@@ -156,7 +156,7 @@ export const createPrediction = async (
       
       // Clinical context to help ML model
       clinicalContext: {
-        age: patient.age, // From virtual field
+        age: patient.personalInfo.age, // From virtual field
         gender: patient.personalInfo.gender,
         smokingStatus: patient.medicalInfo.smokingStatus,
         smokingPackYears: patient.medicalInfo.smokingPackYears,
@@ -432,7 +432,7 @@ export const handleMLWebhook = async (
     // Update with ML results
     if (mlResponse.success) {
       prediction.status = 'completed';
-      prediction.results = mlResponse.results;
+      prediction.results = mlResponse.results as any;
       prediction.processingTime = mlResponse.processingTime;
       prediction.completedAt = new Date();
       
