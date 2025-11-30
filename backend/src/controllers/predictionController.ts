@@ -432,7 +432,7 @@ export const handleMLWebhook = async (
     // Update with ML results
     if (mlResponse.success) {
       prediction.status = 'completed';
-      prediction.results = mlResponse.results as any;
+      prediction.results = mlResponse.results as any;// this line need to be corrected - no 'as any' in original code 
       prediction.processingTime = mlResponse.processingTime;
       prediction.completedAt = new Date();
       
