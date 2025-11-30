@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import patientRoutes from './routes/patientRoutes';
+import fileRoutes from './routes/fileRoutes';
 
 //import middlewares
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -75,6 +76,7 @@ app.get('/api', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/patients',patientRoutes);
+app.use('/api/files',fileRoutes);
 
 //error handliing
 
