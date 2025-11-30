@@ -275,9 +275,9 @@ export const completeUpload = async (
     writeStream.end();
 
     // Wait for write to complete
-    await new Promise((resolve, reject) => {
-      writeStream.on('finish', resolve);
-      writeStream.on('error', reject);
+    await new Promise<void>((resolve, reject) => {
+    writeStream.on('finish', () => resolve());
+    writeStream.on('error', (err) => reject(err));
     });
 
     // Verify file hash
