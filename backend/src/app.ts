@@ -9,7 +9,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import patientRoutes from './routes/patientRoutes';
 import fileRoutes from './routes/fileRoutes';
-
+import predictionRoutes from './routes/predictionRoutes';
 //import middlewares
 import { errorHandler, notFound } from './middleware/errorHandler';
 
@@ -77,6 +77,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/patients',patientRoutes);
 app.use('/api/files',fileRoutes);
+app.use('/api/predictions',predictionRoutes)
 
 //error handliing
 
