@@ -11,7 +11,7 @@ export const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
-  role: z.enum(['doctor', 'researcher']).default('doctor'),
+  role: z.enum(['doctor', 'researcher']),
   institution: z.string().optional(),
   department: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
