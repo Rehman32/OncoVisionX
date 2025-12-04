@@ -27,9 +27,8 @@ export const patientsApi = {
     return response.data;
   },
 
-  /**
-   * Update patient
-   */
+  //Update patient
+   
   updatePatient: async (id: string, data: Partial<CreatePatientRequest>) => {
     const response = await apiClient.put<APIResponse<Patient>>(`/patients/${id}`, data);
     return response.data;
