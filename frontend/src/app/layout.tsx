@@ -1,15 +1,14 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Toaster } from "sonner";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Toaster } from 'sonner';
+import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider';
 
-const inter = Inter({
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "OncoVisionX",
-  description: "MultiModal Cancer Staging and Prognosis",
+  title: 'OncoVisionX',
+  description: 'AI-powered NSCLC staging system',
 };
 
 export default function RootLayout({
@@ -20,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        <ReactQueryProvider>
+          {children}
+        </ReactQueryProvider>
         <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
