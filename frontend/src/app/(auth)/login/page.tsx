@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import LoginForm from '@/components/auth/LoginForm';
 
 export const metadata: Metadata = {
-  title: 'Login | CancerVision360',
+  title: 'Login | OncoVisionX',
   description: 'Login to your account',
 };
 
