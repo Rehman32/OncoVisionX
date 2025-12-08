@@ -91,7 +91,7 @@ const PatientSchema = new Schema<IPatient>(
         type: String,
         required: [true, "Gender is Required "],
         enum: {
-          values: ["Male", "Female", "Other"],
+          values: ["male", "female", "other"],
           message: "{VALUE} is not a valid gender",
         },
         trim: true,
