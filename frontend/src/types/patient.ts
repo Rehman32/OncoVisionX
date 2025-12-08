@@ -5,8 +5,9 @@ export interface Patient {
     firstName: string;
     lastName: string;
     dateOfBirth: string;
-    gender: 'male' | 'female' | 'other';
-    bloodType?: string;
+    gender: "male" | "female" | "other";
+    bloodType?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+
     contactNumber?: string;
     email?: string;
     address?: {
@@ -20,7 +21,7 @@ export interface Patient {
   medicalInfo?: {
     height?: number;
     weight?: number;
-    smokingStatus?: 'never' | 'former' | 'current';
+    smokingStatus?: "never" | "former" | "current";
     smokingPackYears?: number;
     comorbidities?: string[];
     allergies?: string[];
@@ -44,8 +45,8 @@ export interface Patient {
 }
 
 export interface CreatePatientRequest {
-  personalInfo: Patient['personalInfo'];
-  medicalInfo?: Patient['medicalInfo'];
-  emergencyContact?: Patient['emergencyContact'];
+  personalInfo: Patient["personalInfo"];
+  medicalInfo?: Patient["medicalInfo"];
+  emergencyContact?: Patient["emergencyContact"];
   assignedDoctor?: string;
 }

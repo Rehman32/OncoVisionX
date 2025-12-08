@@ -20,7 +20,7 @@ import { Patient } from '@/types/patient';
 import { Loader2, Plus, X } from 'lucide-react';
 
 interface PatientFormProps {
-  defaultValues?: Partial<Patient>;
+  defaultValues?: Partial<PatientFormData>;
   onSubmit: (data: PatientFormData) => void;
   isLoading?: boolean;
 }
@@ -48,13 +48,14 @@ export default function PatientForm({ defaultValues, onSubmit, isLoading }: Pati
 
   // Field arrays for dynamic lists
   const { fields: comorbiditiesFields, append: appendComorbidity, remove: removeComorbidity } = 
-    useFieldArray({ control, name: 'medicalInfo.comorbidities' });
-  
-  const { fields: allergiesFields, append: appendAllergy, remove: removeAllergy } = 
-    useFieldArray({ control, name: 'medicalInfo.allergies' });
-  
-  const { fields: medicationsFields, append: appendMedication, remove: removeMedication } = 
-    useFieldArray({ control, name: 'medicalInfo.currentMedications' });
+  useFieldArray<any,any>({ control, name: 'medicalInfo.comorbidities' });
+
+const { fields: allergiesFields, append: appendAllergy, remove: removeAllergy } = 
+  useFieldArray<any,any>({ control, name: 'medicalInfo.allergies' });
+
+const { fields: medicationsFields, append: appendMedication, remove: removeMedication } = 
+  useFieldArray<any,any>({ control, name: 'medicalInfo.currentMedications' });
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
