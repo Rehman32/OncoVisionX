@@ -86,10 +86,11 @@ export const createPatient = async (
 
     const { personalInfo, medicalInfo, emergencyContact, assignedDoctor } =
       req.body;
+    console.log("req body :",req.body);
     if (
       !personalInfo.firstName ||
       !personalInfo.lastName ||
-      !personalInfo.dataOfBirth ||
+      !personalInfo.dateOfBirth ||
       !personalInfo.gender
     ) {
       throw new BadRequestError("Missing required perosnal information field");
