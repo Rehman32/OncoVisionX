@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,15 +9,16 @@ import PatientForm from '@/components/patients/PatientForm';
 import { usePatient, useUpdatePatient } from '@/hooks/usePatients';
 import { PatientFormData } from '@/lib/validations/patient';
 
-export default function EditPatientPage({ params }: { params: { id: string } }) {
+export default function EditPatientPage({ params }: { params: Promise<{id : string}> }) {
+  const {id}= React.use(params)
   const router = useRouter();
-  const { data, isLoading } = usePatient(params.id);
-  const updatePatient = useUpdatePatient(params.id);
+  const { data, isLoading } = usePatient(id);
+  const updatePatient = useUpdatePatient(id);
 
   const handleSubmit = async (formData: PatientFormData) => {
     try {
       await updatePatient.mutateAsync(formData as any);
-      router.push(`/dashboard/patients/${params.id}`);
+      router.push(`/dashboard/patients/${id}`);
     } catch (error) {
       // Error handled by mutation
     }
