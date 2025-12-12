@@ -1,5 +1,5 @@
 "use client";
-
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Edit, FileText, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { usePatient } from '@/hooks/usePatients';
 import { format } from 'date-fns';
 
-export default function PatientDetailPage({ params }: { params: { id: string } }) {
+export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
-  const { data, isLoading, isError } = usePatient(params.id);
+  const { data, isLoading, isError } = usePatient(id);
 
   if (isLoading) {
     return (
