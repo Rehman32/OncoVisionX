@@ -27,7 +27,7 @@ router.post(
 router.post(
   '/upload-chunk',
   authorize('admin', 'doctor'),
-  upload.single('chunk'), // 'chunk' is the field name from frontend
+  upload.single('file'), // 'file' is the field name from frontend
   uploadChunk
 );
 
