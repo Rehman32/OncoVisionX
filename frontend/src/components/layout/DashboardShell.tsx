@@ -7,9 +7,10 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children }: DashboardShellProps) {
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar - Fixed */}
-      <aside className="hidden lg:block w-64 flex-shrink-0">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
+      {/* Sidebar - Fixed with subtle elevation */}
+      <aside className="hidden lg:block w-72 flex-shrink-0 relative">
+        <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-slate-200 dark:via-slate-800 to-transparent"></div>
         <Sidebar />
       </aside>
 
@@ -17,8 +18,9 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
         
-        <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
-          <div className="mx-auto max-w-7xl">
+        {/* Main content with refined spacing and subtle background */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-[1400px] px-8 py-8">
             {children}
           </div>
         </main>
