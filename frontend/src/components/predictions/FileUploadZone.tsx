@@ -43,7 +43,7 @@ export default function FileUploadZone({
         const file = files[i];
         
         // Call the chunked upload service
-        const fileId = await filesApi.uploadFile(file, category, (pct) => {
+        const fileId = await filesApi.uploadFile(file, category, (pct:any) => {
           // Calculate overall progress across all files
           const overallProgress = Math.round(((i * 100) + pct) / files.length);
           setProgress(overallProgress);
