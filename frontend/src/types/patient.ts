@@ -33,7 +33,7 @@ export interface Patient {
     relationship: string;
     phoneNumber: string;
   };
-  assignedDoctor?: string;
+  assignedDoctor?: string | Doctor;
   createdBy: string;
   updatedBy?: string;
   isActive: boolean;
@@ -44,6 +44,12 @@ export interface Patient {
   bmi?: number;
 }
 
+export interface Doctor {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+}
 export interface CreatePatientRequest {
   personalInfo: Patient["personalInfo"];
   medicalInfo?: Patient["medicalInfo"];
