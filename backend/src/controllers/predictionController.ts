@@ -330,6 +330,7 @@ export const getPredictionById = async (
       .populate('patient')
       .populate('requestedBy', 'firstName lastName email');
     
+    
     if (!prediction) {
       throw new NotFoundError('Prediction not found');
     }
@@ -338,7 +339,7 @@ export const getPredictionById = async (
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
-    if (userRole === 'doctor' && prediction.requestedBy.toString() !== userId) {
+    if (userRole === 'researcher' && prediction.requestedBy.toString() !== userId) {
       throw new ForbiddenError('You are not authorized to view this prediction');
     }
     
