@@ -52,7 +52,8 @@ export const getPatientById = async (
   next: NextFunction
 ) => {
   try {
-    const patient = await Patient.findById(req.params.id);
+    const patient = await Patient.findById(req.params.id).populate('assignedDoctor', 'firstName lastName email')
+  .exec();
     if (!patient || !patient.isActive) {
       throw new NotFoundError("User not found ");
     }
