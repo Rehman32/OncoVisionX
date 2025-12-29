@@ -79,7 +79,7 @@ export default function Sidebar() {
   return (
     <div className="flex h-full flex-col bg-white dark:bg-slate-950 relative">
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50/50 dark:to-slate-900/30 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-100/50 dark:to-slate-900/30 pointer-events-none"></div>
 
       {/* Logo Section */}
       <div className="relative flex h-20 items-center px-6 border-b border-slate-200 dark:border-slate-800">
@@ -105,34 +105,7 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      {/* AI Assistant Callout */}
-      <div className="relative mx-4 mt-6 mb-2">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-[1px]">
-          <div className="relative rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 p-4">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400/20 dark:bg-blue-400/10 rounded-full blur-2xl"></div>
-            <div className="relative flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-900 dark:text-white mb-1">
-                  AI Assistant Ready
-                </p>
-                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-                  Get instant predictions and insights powered by advanced ML models
-                </p>
-                <Button 
-                  size="sm" 
-                  className="h-7 text-[11px] font-semibold bg-white dark:bg-slate-950 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm"
-                >
-                  Try Now
-                  <Zap className="ml-1.5 h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Navigation */}
       <nav className="relative flex-1 px-4 py-4 overflow-y-auto">
@@ -229,47 +202,36 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
-
-      {/* User Info Section */}
-      <div className="relative border-t border-slate-200 dark:border-slate-800 p-4">
-        <div className="relative group cursor-pointer">
-          {/* Hover glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          
-          <div className="relative flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 group-hover:bg-slate-100 dark:group-hover:bg-slate-900 transition-all duration-200">
-            <div className="relative">
-              {/* Avatar with gradient border */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 blur-sm opacity-75"></div>
-              <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm shadow-lg ring-2 ring-white dark:ring-slate-950">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+      {/* AI Assistant Callout */}
+      <div className="relative mx-4 mt-6 mb-2">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-[1px]">
+          <div className="relative rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 p-4">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400/20 dark:bg-blue-400/10 rounded-full blur-2xl"></div>
+            <div className="relative flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
+                <Sparkles className="h-4 w-4 text-white" />
               </div>
-              {/* Online status indicator */}
-              <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-950 shadow-sm"></div>
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-50 truncate leading-tight">
-                {user?.firstName} {user?.lastName}
-              </p>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-xs text-slate-500 dark:text-slate-400 truncate capitalize">
-                  {user?.role}
-                </span>
-                {user?.institution && (
-                  <>
-                    <span className="text-slate-300 dark:text-slate-700">•</span>
-                    <span className="text-xs text-slate-400 dark:text-slate-500 truncate">
-                      {user.institution}
-                    </span>
-                  </>
-                )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-slate-900 dark:text-white mb-1">
+                  AI Assistant Ready
+                </p>
+                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                  Get instant predictions and insights powered by advanced ML models
+                </p>
+                <Button 
+                  size="sm" 
+                  className="h-7 text-[11px] font-semibold bg-white dark:bg-slate-950 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm"
+                >
+                  Try Now
+                  <Zap className="ml-1.5 h-3 w-3" />
+                </Button>
               </div>
             </div>
-            
-            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:translate-x-0.5 transition-all duration-200" />
           </div>
         </div>
       </div>
+
+      
     </div>
   );
 }
