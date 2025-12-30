@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from "../utils/errors";
+import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError, ValidationError } from "../utils/errors";
 import User, { IUser } from "../models/User";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt";
-import { userInfo } from "os";
+import crypto from 'crypto';
+import { sendEmail } from '../utils/email';
+import { logger } from "../utils/logger";
+import  jwt  from "jsonwebtoken";
+import bcrypt from 'bcryptjs';
 
 export const register = async (
   req: Request,
@@ -308,5 +312,151 @@ export const changePassword = async (
     });
   } catch (error) {
     next(error);
+  }
+};
+
+
+/**
+ * @desc    Request password reset
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      throw new BadRequestError('Email is required');
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // SECURITY: Don't reveal if email exists
+      res.json({
+        success: true,
+        message: 'If an account exists, you will receive a password reset email.',
+      });
+      return;
+    }
+
+    // Generate reset token (signed JWT with 15 min expiry)
+    const resetToken = jwt.sign(
+      { userId: user._id, purpose: 'password-reset' },
+      process.env.JWT_SECRET!,
+      { expiresIn: '15m' }
+    );
+
+    // Save hashed token to user (for validation)
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    user.passwordResetToken = resetTokenHash;
+    user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await user.save();
+
+    // Send email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    
+    await sendEmail({
+      to: user.email,
+      subject: 'Password Reset Request - OncoVisionX',
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>Hi ${user.firstName},</p>
+        <p>You requested a password reset. Click the link below to reset your password:</p>
+        <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #3B82F6; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+        <p>This link expires in 15 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <p><small>For security reasons, this link can only be used once.</small></p>
+      `,
+    });
+
+    logger.info('Password reset email sent', { userId: user._id, email: user.email });
+
+    res.json({
+      success: true,
+      message: 'If an account exists, you will receive a password reset email.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc    Reset password with token
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      throw new BadRequestError('Token and new password are required');
+    }
+
+    // Validate password strength
+    if (newPassword.length < 8) {
+      throw new ValidationError('Password must be at least 8 characters');
+    }
+
+    // Verify JWT token
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+      throw new BadRequestError('Invalid or expired reset token');
+    }
+
+    if (decoded.purpose !== 'password-reset') {
+      throw new BadRequestError('Invalid token purpose');
+    }
+
+    // Hash the token to compare with DB
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    // Find user with valid token
+    const user = await User.findOne({
+      _id: decoded.userId,
+      passwordResetToken: resetTokenHash,
+      passwordResetExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      throw new BadRequestError('Invalid or expired reset token');
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    // Clear reset token fields
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+
+    logger.info('Password reset successful', { userId: user._id });
+
+    res.json({
+      success: true,
+      message: 'Password reset successful. You can now login with your new password.',
+    });
+  } catch (err) {
+    next(err);
   }
 };
