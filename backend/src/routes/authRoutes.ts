@@ -6,7 +6,9 @@ import {
   refreshAccessToken,
   logout,
   updateProfile,
-  changePassword
+  changePassword,
+  forgotPassword,
+  resetPassword
 } from '../controllers/authController';
 import { protect } from '../middleware/auth';
 
@@ -64,5 +66,8 @@ router.put('/update-profile', protect, updateProfile);
  * @access  Private
  */
 router.put('/change-password', protect, changePassword);
+
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 export default router;
