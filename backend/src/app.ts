@@ -10,6 +10,8 @@ import userRoutes from './routes/userRoutes';
 import patientRoutes from './routes/patientRoutes';
 import fileRoutes from './routes/fileRoutes';
 import predictionRoutes from './routes/predictionRoutes';
+import mfaRoutes from './routes/mfaRoutes';
+
 //import middlewares
 import { errorHandler, notFound } from './middleware/errorHandler';
 
@@ -78,6 +80,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/patients',patientRoutes);
 app.use('/api/files',fileRoutes);
 app.use('/api/predictions',predictionRoutes)
+app.use('/api/mfa', mfaRoutes);
 
 //error handliing
 
