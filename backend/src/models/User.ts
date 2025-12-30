@@ -14,6 +14,8 @@ export interface IUser extends Document {
   department?: string;
   isActive: boolean;
   isEmailVerified: boolean;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -89,6 +91,8 @@ const UserSchema = new Schema<IUser, IUserModel>({
     type: Boolean,
     default: false,
   },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
   lastLogin: {
     type: Date,
   },
