@@ -19,7 +19,10 @@ export interface IUser extends Document {
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
-
+  mfaEnabled: boolean;
+  mfaSecret?: string; // For future TOTP apps (Google Authenticator)
+  emailOtpCode?: string;
+  emailOtpExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -91,6 +94,13 @@ const UserSchema = new Schema<IUser, IUserModel>({
     type: Boolean,
     default: false,
   },
+  mfaEnabled: {
+  type: Boolean,
+  default: false
+},
+  mfaSecret: String,
+  emailOtpCode: String,
+  emailOtpExpires: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
   lastLogin: {
