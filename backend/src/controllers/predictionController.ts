@@ -263,9 +263,11 @@ const processMLPrediction = async (
 };
 
 /**
- * @desc    Get all predictions (with filters)
- * @route   GET /api/predictions?patientId=&status=&page=&limit=
- * @access  Private
+ * GET /api/predictions
+ * 
+ * RBAC:
+ * - Admin/Researcher: See all
+ * - Doctor: Only predictions they requested OR for their patients
  */
 export const getPredictions = async (
   req: Request,
@@ -289,12 +291,23 @@ export const getPredictions = async (
       query.status = status;
     }
     
-    // Role-based filtering
+    // RBAC: Row-Level Security
     if (userRole === 'doctor') {
-      // Doctors only see predictions they requested
-      query.requestedBy = userId;
+      // Find patients assigned to this doctor
+      const assignedPatients = await Patient.find({ 
+        assignedDoctor: userId 
+      }).select('_id');
+      
+      const patientIds = assignedPatients.map(p => p._id);
+      
+      // Doctor sees predictions for their patients OR predictions they requested
+      query.$or = [
+        { patient: { $in: patientIds } },
+        { requestedBy: userId }
+      ];
+      
+      logger.info('Doctor filtered prediction query', { doctorId: userId, patientCount: patientIds.length });
     }
-    // Admins and researchers see all predictions
     
     const predictions = await Prediction.find(query)
       .populate('patient', 'patientId personalInfo')
@@ -304,6 +317,12 @@ export const getPredictions = async (
       .limit(+limit);
     
     const total = await Prediction.countDocuments(query);
+
+    logger.info('Prediction list accessed', {
+      userId,
+      userRole,
+      count: predictions.length
+    });
     
     res.json({
       success: true,
@@ -316,9 +335,11 @@ export const getPredictions = async (
 };
 
 /**
- * @desc    Get single prediction by ID
- * @route   GET /api/predictions/:id
- * @access  Private
+ * GET /api/predictions/:id
+ * 
+ * Authorization:
+ * - Admin/Researcher: Access any
+ * - Doctor: Only if they requested it OR patient is assigned to them
  */
 export const getPredictionById = async (
   req: Request,
@@ -326,22 +347,37 @@ export const getPredictionById = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = (req as any).user.userId;
+    const userRole = (req as any).user.role;
+    
     const prediction = await Prediction.findById(req.params.id)
       .populate('patient')
       .populate('requestedBy', 'firstName lastName email');
-    
     
     if (!prediction) {
       throw new NotFoundError('Prediction not found');
     }
     
-    // Authorization check
-    const userId = (req as any).user.userId;
-    const userRole = (req as any).user.role;
-    
-    if (userRole === 'researcher' && prediction.requestedBy.toString() !== userId) {
-      throw new ForbiddenError('You are not authorized to view this prediction');
+    // RBAC: Authorization
+    if (userRole === 'doctor') {
+      const patient = prediction.patient as any;
+      const isAssignedDoctor = patient.assignedDoctor?.toString() === userId;
+      const isRequester = prediction.requestedBy.toString() === userId;
+      
+      if (!isAssignedDoctor && !isRequester) {
+        logger.warn('Unauthorized prediction access attempt', {
+          doctorId: userId,
+          predictionId: prediction._id
+        });
+        throw new ForbiddenError('You are not authorized to view this prediction');
+      }
     }
+
+    logger.info('Prediction detail accessed', {
+      userId,
+      userRole,
+      predictionId: prediction._id
+    });
     
     res.json({
       success: true,
