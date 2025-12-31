@@ -135,14 +135,12 @@ export const createUser = async (
     // Generate temporary password if not provided
     const tempPassword = password || Math.random().toString(36).slice(-10) + 'A1!';
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(tempPassword, salt);
+  
 
     // Create user
     const user = await User.create({
       email: email.toLowerCase(),
-      password: hashedPassword,
+      password: tempPassword,
       firstName,
       lastName,
       role,

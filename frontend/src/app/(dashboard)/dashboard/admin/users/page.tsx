@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
@@ -41,19 +42,34 @@ import {
 import { Plus, MoreVertical, UserX, Key, Edit, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { useForm } from 'react-hook-form';
 
 export default function UserManagementPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
+  
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'doctor' | 'researcher'>('all');
+  const handleRoleFilterChange = (value: string) => {
+  if (
+    value === 'all' ||
+    value === 'admin' ||
+    value === 'doctor' ||
+    value === 'researcher'
+  ) {
+    setRoleFilter(value);
+  }
+};
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['users', search, roleFilter],
     queryFn: async () => {
       const { data } = await apiClient.get('/users', {
-        params: { search, role: roleFilter, limit: 50 }
+        params: {
+  search,
+  role: roleFilter === 'all' ? undefined : roleFilter,
+  limit: 50,
+}
+
       });
       return data;
     }
@@ -95,7 +111,7 @@ export default function UserManagementPage() {
     }
   });
 
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset,control } = useForm();
 
   const onCreateUser = (formData: any) => {
     createUserMutation.mutate(formData);
@@ -144,18 +160,26 @@ export default function UserManagementPage() {
               </div>
 
               <div>
-                <Label>Role *</Label>
-                <Select onValueChange={(value) => register('role').onChange({ target: { value } })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="doctor">Doctor</SelectItem>
-                    <SelectItem value="researcher">Researcher</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+  <Label>Role *</Label>
+  <Controller
+    name="role"
+    control={control}
+    rules={{ required: true }}
+    render={({ field }) => (
+      <Select value={field.value} onValueChange={field.onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select role" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="admin">Admin</SelectItem>
+          <SelectItem value="doctor">Doctor</SelectItem>
+          <SelectItem value="researcher">Researcher</SelectItem>
+        </SelectContent>
+      </Select>
+    )}
+  />
+</div>
+
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -239,12 +263,13 @@ export default function UserManagementPage() {
             className="pl-9"
           />
         </div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
+        <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
+
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Roles</SelectItem>
+            <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="doctor">Doctor</SelectItem>
             <SelectItem value="researcher">Researcher</SelectItem>

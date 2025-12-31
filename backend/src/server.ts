@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
+dotenv.config();
+
 import connectDatabase from './config/database';
 import app from './app';
 import { logger } from './utils/logger';
-dotenv.config();
 
 // validate required env variables
 const requiredEnvVar = ['NODE_ENV','PORT','JWT_SECRET','MONGODB_URI'];

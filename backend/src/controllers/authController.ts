@@ -440,9 +440,7 @@ export const resetPassword = async (
       throw new BadRequestError('Invalid or expired reset token');
     }
 
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    user.password = newPassword;
 
     // Clear reset token fields
     user.passwordResetToken = undefined;
