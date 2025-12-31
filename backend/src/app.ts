@@ -3,7 +3,6 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-
 //import routes
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
@@ -11,7 +10,6 @@ import patientRoutes from './routes/patientRoutes';
 import fileRoutes from './routes/fileRoutes';
 import predictionRoutes from './routes/predictionRoutes';
 import mfaRoutes from './routes/mfaRoutes';
-import auditRoutes from './routes/auditRoutes';
 
 //import middlewares
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -82,7 +80,6 @@ app.use('/api/patients',patientRoutes);
 app.use('/api/files',fileRoutes);
 app.use('/api/predictions',predictionRoutes)
 app.use('/api/mfa', mfaRoutes);
-app.use('/api/audit', auditRoutes);
 
 //error handliing
 
