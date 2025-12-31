@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Patient from '../models/Patient';
 import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { deidentifyPatient } from '../utils/deidentify';
 
 
 // Helper: Generate Patient ID
@@ -13,13 +14,10 @@ const generatePatientId = async (): Promise<string> => {
 };
 
 
+
 /**
  * GET /api/patients
- * 
- * RBAC Logic:
- * - Admin: See all patients
- * - Doctor: See only assigned patients
- * - Researcher: See de-identified data only (Task 2.2)
+ Get all patients
  */
 export const getPatients = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -27,19 +25,13 @@ export const getPatients = async (req: Request, res: Response, next: NextFunctio
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
 
-    // Build base query
     const query: any = { isActive: true };
 
-    // RBAC: Row-Level Security
+    // 1. RBAC filters
     if (userRole === 'doctor') {
-      // Doctors only see their assigned patients
       query.assignedDoctor = userId;
-      logger.info('Doctor filtered patient query', { doctorId: userId });
     }
-    // Admin sees all (no filter)
-    // Researcher filter handled in Task 2.2
 
-    // Search filter (if provided)
     if (search) {
       const s = search as string;
       query.$or = [
@@ -49,67 +41,83 @@ export const getPatients = async (req: Request, res: Response, next: NextFunctio
       ];
     }
 
-    const patients = await Patient.find(query)
+    // 2. Fetch Hydrated Mongoose Documents
+    const patientDocs = await Patient.find(query)
       .sort({ createdAt: -1 })
       .skip((+page - 1) * +limit)
       .limit(+limit);
 
     const total = await Patient.countDocuments(query);
 
-    // Log data access for audit trail
-    logger.info('Patient list accessed', {
-      userId,
-      userRole,
-      count: patients.length,
-      filters: { search, page, limit }
-    });
+    // 3. Prepare Response Data
+    // We use "any[]" or a union type here because the shape changes for researchers
+    let responseData: any[];
 
+    if (userRole === 'researcher') {
+      // Transform to plain objects and strip PII
+      responseData = patientDocs.map(p => deidentifyPatient(p.toObject()));
+      
+      logger.info('De-identified patient data served to researcher', { 
+        userId, 
+        count: responseData.length 
+      });
+    } else {
+      // For doctors/admins, return the full object (including virtuals)
+      responseData = patientDocs.map(p => p.toObject());
+      
+      logger.info('Full patient list accessed', {
+        userId,
+        userRole,
+        count: responseData.length
+      });
+    }
+
+    // 4. Send Response
     res.json({
       success: true,
-      data: patients,
-      meta: { total, page: +page, limit: +limit }
+      data: responseData,
+      meta: { 
+        total, 
+        page: +page, 
+        limit: +limit 
+      }
     });
-  } catch (err) { next(err); }
+  } catch (err) { 
+    next(err); 
+  }
 };
 
 /**
  * GET /api/patients/:id
- * 
- * Authorization:
- * - Admin: Access any patient
- * - Doctor: Only if assignedDoctor matches
- * - Researcher: De-identified view only
  */
 export const getPatientById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
 
-    const patient = await Patient.findById(req.params.id);
+    let patient = await Patient.findById(req.params.id);
 
     if (!patient || !patient.isActive) {
       throw new NotFoundError('Patient not found');
     }
 
-    // RBAC: Authorization Check
+    // RBAC: Doctor authorization
     if (userRole === 'doctor') {
       if (patient.assignedDoctor?.toString() !== userId) {
-        logger.warn('Unauthorized patient access attempt', {
-          doctorId: userId,
-          patientId: patient._id,
-          assignedDoctor: patient.assignedDoctor
-        });
         throw new ForbiddenError('You are not authorized to access this patient');
       }
     }
 
-    // Researcher de-identification handled in Task 2.2
+    // DE-IDENTIFICATION: Transform for researchers
+    if (userRole === 'researcher') {
+      patient = deidentifyPatient(patient.toObject()) as any;
+      logger.info('De-identified patient detail served to researcher', { userId, patientId: req.params.id });
+    }
 
-    // Log access for audit trail
     logger.info('Patient detail accessed', {
       userId,
       userRole,
-      patientId: patient._id
+      patientId: patient?.patientId
     });
 
     res.json({ success: true, data: patient });
