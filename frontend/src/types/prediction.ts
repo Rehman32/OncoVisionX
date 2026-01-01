@@ -1,7 +1,7 @@
 export interface Prediction {
   _id: string;
   predictionId: string;
-  patient: string | Patient; // Can be populated
+  patient: string | Patient;
   requestedBy: string | User;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   uploadedFiles: {
@@ -22,7 +22,14 @@ export interface Prediction {
       fileName: string;
       uploadedAt: string;
     };
-    genomicData?: {
+    // NEW: RNA-Seq Data
+    rnaSeqData?: {
+      fileId: string;
+      fileName: string;
+      uploadedAt: string;
+    };
+    // NEW: Mutation Data
+    mutationData?: {
       fileId: string;
       fileName: string;
       uploadedAt: string;
@@ -45,11 +52,13 @@ export interface Prediction {
       pathologyMapUrl?: string;
       radiologyMapUrl?: string;
     };
+    // UPDATED: Separate RNA-Seq and Mutation importance
     featureImportance?: {
       pathology: number;
       radiology: number;
       clinical: number;
-      genomic: number;
+      rnaSeq: number;
+      mutation: number;
     };
   };
   processingTime?: number;
@@ -59,13 +68,15 @@ export interface Prediction {
   updatedAt: string;
 }
 
+// UPDATED: New request shape
 export interface CreatePredictionRequest {
   patientId: string;
   files: {
     pathologyImages?: string[];
     radiologyScans?: string[];
     clinicalData?: string;
-    genomicData?: string;
+    rnaSeqData?: string;      // NEW
+    mutationData?: string;    // NEW
   };
 }
 

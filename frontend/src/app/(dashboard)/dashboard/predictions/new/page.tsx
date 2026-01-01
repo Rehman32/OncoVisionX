@@ -2,7 +2,7 @@
 
 import { useState, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Dna } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCreatePrediction } from '@/hooks/usePredictions';
@@ -17,31 +17,30 @@ export default function NewPredictionPage() {
   const createPrediction = useCreatePrediction();
   const { data: patientData, isLoading: isPatientLoading } = usePatient(patientId || '');
 
-  // State for collected file IDs
+  // UPDATED: State with separate RNA-Seq and Mutation
   const [files, setFiles] = useState({
     pathologyImages: [] as string[],
     radiologyScans: [] as string[],
     clinicalData: '',
-    genomicData: ''
+    rnaSeqData: '',      // NEW
+    mutationData: ''     // NEW
   });
 
   const handleSubmit = async () => {
     if (!patientId) return;
 
     try {
-      // Transform empty arrays/strings to undefined to match API schema if needed
-      // but our schema allows optional, so let's just send what we have
       await createPrediction.mutateAsync({
         patientId,
         files: {
           pathologyImages: files.pathologyImages.length ? files.pathologyImages : undefined,
           radiologyScans: files.radiologyScans.length ? files.radiologyScans : undefined,
           clinicalData: files.clinicalData || undefined,
-          genomicData: files.genomicData || undefined
+          rnaSeqData: files.rnaSeqData || undefined,      // NEW
+          mutationData: files.mutationData || undefined   // NEW
         }
       });
       
-      // Redirect to list on success
       router.push('/dashboard/predictions');
     } catch (err) {
       // Handled by hook
@@ -64,6 +63,14 @@ export default function NewPredictionPage() {
   }
 
   const patient = patientData?.data;
+
+  // Calculate total files uploaded
+  const totalFiles = 
+    files.pathologyImages.length + 
+    files.radiologyScans.length + 
+    (files.clinicalData ? 1 : 0) + 
+    (files.rnaSeqData ? 1 : 0) +     // NEW
+    (files.mutationData ? 1 : 0);    // NEW
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
@@ -133,17 +140,39 @@ export default function NewPredictionPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* NEW: Separate Genomics Upload Zones */}
+          <Card className="border-purple-200 dark:border-purple-800">
             <CardHeader>
-              <CardTitle>Genomic Data</CardTitle>
-              <CardDescription>Upload sequencing data or biomarker reports</CardDescription>
+              <div className="flex items-center gap-2">
+                <Dna className="h-5 w-5 text-purple-600" />
+                <CardTitle>RNA Sequencing</CardTitle>
+              </div>
+              <CardDescription>Upload RNA-Seq data (.fastq, .csv, .txt)</CardDescription>
             </CardHeader>
             <CardContent>
               <FileUploadZone 
-                label="Genomic Profile"
+                label="RNA-Seq Data"
                 category="genomic"
-                accept=".csv,.json,.vcf,.txt"
-                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, genomicData: ids[0] }))}
+                accept=".fastq,.csv,.txt,.fq"
+                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, rnaSeqData: ids[0] }))}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border-orange-200 dark:border-orange-800">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Dna className="h-5 w-5 text-orange-600" />
+                <CardTitle>Mutation Data</CardTitle>
+              </div>
+              <CardDescription>Upload variant/mutation calls (.vcf, .csv)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FileUploadZone 
+                label="Mutation Variants"
+                category="genomic"
+                accept=".vcf,.csv,.txt"
+                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, mutationData: ids[0] }))}
               />
             </CardContent>
           </Card>
@@ -152,17 +181,41 @@ export default function NewPredictionPage() {
           <Card className="bg-muted/50 border-dashed">
             <CardContent className="pt-6">
               <div className="flex flex-col gap-4">
-                <div className="flex justify-between text-sm">
-                  <span>Files selected:</span>
-                  <span className="font-semibold">
-                    {files.pathologyImages.length + files.radiologyScans.length + (files.clinicalData ? 1 : 0) + (files.genomicData ? 1 : 0)}
-                  </span>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Pathology:</span>
+                    <span className="font-semibold">{files.pathologyImages.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Radiology:</span>
+                    <span className="font-semibold">{files.radiologyScans.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Clinical:</span>
+                    <span className="font-semibold">{files.clinicalData ? 1 : 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>RNA-Seq:</span>
+                    <span className="font-semibold text-purple-600">{files.rnaSeqData ? 1 : 0}</span>
+                  </div>
+                  <div className="flex justify-between col-span-2">
+                    <span>Mutations:</span>
+                    <span className="font-semibold text-orange-600">{files.mutationData ? 1 : 0}</span>
+                  </div>
                 </div>
+                
+                <div className="h-px bg-border" />
+                
+                <div className="flex justify-between font-semibold">
+                  <span>Total Files:</span>
+                  <span>{totalFiles}</span>
+                </div>
+
                 <Button 
                   size="lg" 
                   className="w-full" 
                   onClick={handleSubmit}
-                  disabled={createPrediction.isPending}
+                  disabled={createPrediction.isPending || totalFiles === 0}
                 >
                   {createPrediction.isPending ? (
                     <>
