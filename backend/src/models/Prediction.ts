@@ -1,41 +1,22 @@
 import { Document, Schema, Types } from "mongoose";
 import mongoose from "mongoose";
 
-//tnm stages according AJJC 8 edition
-export type TStage =
-  | "T0"
-  | "T1"
-  | "T1a"
-  | "T1b"
-  | "T1c"
-  | "T2"
-  | "T2a"
-  | "T2b"
-  | "T3"
-  | "T4";
+// TNM stages according AJCC 8 edition
+export type TStage = "T0" | "T1" | "T1a" | "T1b" | "T1c" | "T2" | "T2a" | "T2b" | "T3" | "T4";
 export type NStage = "N0" | "N1" | "N2" | "N3";
 export type MStage = "M0" | "M1" | "M1a" | "M1b" | "M1c";
-export type OverallStage =
-  | "IA1"
-  | "IA2"
-  | "IA3"
-  | "IB"
-  | "IIA"
-  | "IIB"
-  | "IIIA"
-  | "IIIB"
-  | "IIIC"
-  | "IVA"
-  | "IVB";
+export type OverallStage = "IA1" | "IA2" | "IA3" | "IB" | "IIA" | "IIB" | "IIIA" | "IIIB" | "IIIC" | "IVA" | "IVB";
 
 export interface IPrediction extends Document {
   _id: mongoose.Types.ObjectId;
   predictionId: String;
-  patient: Types.ObjectId; //references to patient
-  requestedBy: Types.ObjectId; //references to user
+  patient: Types.ObjectId;
+  requestedBy: Types.ObjectId;
   status: "pending" | "processing" | "completed" | "failed";
 
-  //uplaod files metadata(actual files will be GridFS or cloud )
+  // ========================================================
+  // UPDATED: Genomic data split into RNA-Seq + Mutations
+  // ========================================================
   uploadedFiles: {
     pathologyImages?: Array<{
       fileId: string;
@@ -54,24 +35,30 @@ export interface IPrediction extends Document {
       fileName: string;
       uploadedAt: Date;
     };
-    genomicData?: {
+    // NEW: RNA Sequencing Data
+    rnaSeqData?: {
+      fileId: string;
+      fileName: string;
+      uploadedAt: Date;
+    };
+    // NEW: Mutation/Variant Data
+    mutationData?: {
       fileId: string;
       fileName: string;
       uploadedAt: Date;
     };
   };
 
-  // results from ML model (populated when status = 'completed')
   results?: {
     tnmStaging: {
       tStage: TStage;
       nStage: NStage;
       mStage: MStage;
       overallStage: OverallStage;
-      confidence: number; // 0-1 - yes or no
+      confidence: number;
     };
     survivalPrediction?: {
-      oneYearSurvival: number; // Probability 0-1
+      oneYearSurvival: number;
       threeYearSurvival: number;
       fiveYearSurvival: number;
     };
@@ -83,18 +70,19 @@ export interface IPrediction extends Document {
       pathology: number;
       radiology: number;
       clinical: number;
-      genomic: number;
+      // UPDATED: Separate importance for RNA and mutations
+      rnaSeq: number;
+      mutation: number;
     };
   };
-  processingTime?: number; // seconds
+  processingTime?: number;
   errorMessage?: string;
   completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-  
 }
 
-//Schema
+// Schema
 const PredictionSchema = new Schema<IPrediction>(
   {
     predictionId: {
@@ -151,7 +139,15 @@ const PredictionSchema = new Schema<IPrediction>(
         uploadedAt: Date
       },
       
-      genomicData: {
+      // NEW: RNA-Seq Data
+      rnaSeqData: {
+        fileId: String,
+        fileName: String,
+        uploadedAt: Date
+      },
+      
+      // NEW: Mutation Data
+      mutationData: {
         fileId: String,
         fileName: String,
         uploadedAt: Date
@@ -210,7 +206,8 @@ const PredictionSchema = new Schema<IPrediction>(
         pathology: Number,
         radiology: Number,
         clinical: Number,
-        genomic: Number
+        rnaSeq: Number,      // NEW
+        mutation: Number      // NEW
       }
     },
     
@@ -223,9 +220,8 @@ const PredictionSchema = new Schema<IPrediction>(
   }
 );
 
-
-//indexs
-PredictionSchema.index({ patient: 1, createdAt: -1 }); 
-PredictionSchema.index({ requestedBy: 1, status: 1 }); // user pending predictions
+// Indexes
+PredictionSchema.index({ patient: 1, createdAt: -1 });
+PredictionSchema.index({ requestedBy: 1, status: 1 });
 
 export default mongoose.model<IPrediction>('Prediction', PredictionSchema);

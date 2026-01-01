@@ -21,6 +21,8 @@ const generatePredictionId = async (): Promise<string> => {
  * @route   POST /api/predictions
  * @access  Private (Doctor, Admin)
  * 
+ * UPDATED: Now accepts separate RNA-Seq and Mutation data
+ * 
  * Request body:
  * {
  *   patientId: "674e...",
@@ -28,7 +30,8 @@ const generatePredictionId = async (): Promise<string> => {
  *     pathologyImages: ["fileId1", "fileId2"],
  *     radiologyScans: ["fileId3"],
  *     clinicalData: "fileId4",
- *     genomicData: "fileId5"
+ *     rnaSeqData: "fileId5",      // NEW
+ *     mutationData: "fileId6"     // NEW
  *   }
  * }
  */
@@ -50,7 +53,7 @@ export const createPrediction = async (
       throw new NotFoundError('Patient not found');
     }
     
-    // Check authorization (only assigned doctor or admin can create prediction)
+    // Check authorization
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     
@@ -59,7 +62,8 @@ export const createPrediction = async (
     }
     
     // Validate at least one file type provided
-    if (!files.pathologyImages && !files.radiologyScans && !files.clinicalData && !files.genomicData) {
+    if (!files.pathologyImages && !files.radiologyScans && !files.clinicalData && 
+        !files.rnaSeqData && !files.mutationData) {
       throw new BadRequestError('At least one file type must be provided');
     }
     
@@ -67,20 +71,15 @@ export const createPrediction = async (
     const predictionId = await generatePredictionId();
     
     // ============================================================
-    // PREPARE FILES FOR ML BACKEND
+    // PREPARE FILES FOR ML BACKEND (UPDATED)
     // ============================================================
-    // TODO: When integrating real file storage (S3, etc.):
-    // 1. Convert fileIds to actual file paths/URLs
-    // 2. Ensure ML backend can access these files
-    // 3. For cloud storage, generate pre-signed URLs with expiry
-    
     const uploadedFiles: any = {};
     
     if (files.pathologyImages) {
       uploadedFiles.pathologyImages = files.pathologyImages.map((fileId: string) => ({
         fileId,
         fileName: `pathology_${fileId}`,
-        fileSize: 0, // TODO: Get from file metadata
+        fileSize: 0,
         uploadedAt: new Date()
       }));
     }
@@ -102,15 +101,25 @@ export const createPrediction = async (
       };
     }
     
-    if (files.genomicData) {
-      uploadedFiles.genomicData = {
-        fileId: files.genomicData,
-        fileName: `genomic_${files.genomicData}`,
+    // NEW: RNA-Seq Data
+    if (files.rnaSeqData) {
+      uploadedFiles.rnaSeqData = {
+        fileId: files.rnaSeqData,
+        fileName: `rna_seq_${files.rnaSeqData}`,
         uploadedAt: new Date()
       };
     }
     
-    // Create prediction record in database
+    // NEW: Mutation Data
+    if (files.mutationData) {
+      uploadedFiles.mutationData = {
+        fileId: files.mutationData,
+        fileName: `mutation_${files.mutationData}`,
+        uploadedAt: new Date()
+      };
+    }
+    
+    // Create prediction record
     const prediction = await Prediction.create({
       predictionId,
       patient: patientId,
@@ -122,55 +131,46 @@ export const createPrediction = async (
     logger.info('Prediction created', {
       predictionId,
       patientId,
-      userId
+      userId,
+      hasRnaSeq: !!files.rnaSeqData,
+      hasMutation: !!files.mutationData
     });
     
     // ============================================================
-    // SEND TO ML BACKEND (Async Processing)
+    // SEND TO ML BACKEND (UPDATED)
     // ============================================================
-    
-    // Prepare ML request payload
     const mlRequest: MLPredictionRequest = {
       predictionId: prediction._id.toString(),
       patientId: patient._id.toString(),
       
-      // ========================================================
-      // REAL ML INTEGRATION: File paths/URLs
-      // ========================================================
-      // When you integrate your Python backend:
-      // 1. Replace these mock paths with real file paths
-      // 2. If using cloud storage (S3), provide pre-signed URLs
-      // 3. Ensure ML backend can download/access these files
       files: {
         pathologyImages: uploadedFiles.pathologyImages?.map((f: any) => 
-          `/uploads/files/${f.fileId}` // TODO: Use real file paths
+          `/uploads/files/${f.fileId}`
         ),
         radiologyScans: uploadedFiles.radiologyScans?.map((f: any) => 
           `/uploads/files/${f.fileId}`
         ),
         clinicalData: uploadedFiles.clinicalData ? 
           `/uploads/files/${uploadedFiles.clinicalData.fileId}` : undefined,
-        genomicData: uploadedFiles.genomicData ? 
-          `/uploads/files/${uploadedFiles.genomicData.fileId}` : undefined
+        // NEW: Separate RNA-Seq and Mutation paths
+        rnaSeqData: uploadedFiles.rnaSeqData ? 
+          `/uploads/files/${uploadedFiles.rnaSeqData.fileId}` : undefined,
+        mutationData: uploadedFiles.mutationData ? 
+          `/uploads/files/${uploadedFiles.mutationData.fileId}` : undefined
       },
       
-      // Clinical context to help ML model
       clinicalContext: {
-        age: patient.personalInfo.age, // From virtual field
+        age: patient.personalInfo.age,
         gender: patient.personalInfo.gender,
         smokingStatus: patient.medicalInfo.smokingStatus,
         smokingPackYears: patient.medicalInfo.smokingPackYears,
         comorbidities: patient.medicalInfo.comorbidities
       },
       
-      // ========================================================
-      // WEBHOOK URL: Where ML backend sends results
-      // ========================================================
-      // Your Python backend will POST to this URL when done
       webhookUrl: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/predictions/webhook/${prediction._id}`
     };
     
-    // Send to ML backend (async - don't await)
+    // Send to ML backend (async)
     processMLPrediction(prediction._id.toString(), mlRequest)
       .catch(error => {
         logger.error('ML prediction processing failed', {
@@ -179,7 +179,6 @@ export const createPrediction = async (
         });
       });
     
-    // Return immediately to user (prediction will be processed in background)
     res.status(201).json({
       success: true,
       message: 'Prediction request created. Processing will begin shortly.',
@@ -196,6 +195,7 @@ export const createPrediction = async (
     next(err);
   }
 };
+
 
 /**
  * Background processor for ML predictions

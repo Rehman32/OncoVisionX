@@ -41,7 +41,8 @@ export interface MLPredictionRequest {
     pathologyImages?: string[]; // Array of WSI file paths
     radiologyScans?: string[];  // Array of DICOM file paths
     clinicalData?: string;       // Path to clinical CSV/JSON
-    genomicData?: string;        // Path to genomic CSV/JSON
+    rnaSeqData?: string;      // Psth RNA sequencing data
+    mutationData?: string;        // Path to mutation data
   };
   
   // Patient clinical context (may help ML model)
@@ -75,7 +76,7 @@ export interface MLPredictionResponse {
       confidence: number;       // 0.0 to 1.0
     };
     
-    // Survival predictions (optional, if our model supports)
+    // Survival predictions 
     survivalPrediction?: {
       oneYearSurvival: number;
       threeYearSurvival: number;
@@ -93,7 +94,8 @@ export interface MLPredictionResponse {
       pathology: number;
       radiology: number;
       clinical: number;
-      genomic: number;
+      rnaSeq: number;      
+      mutation: number; 
     };
   };
   
@@ -122,12 +124,10 @@ export interface MLStatusResponse {
 const mockMLPrediction = async (
   request: MLPredictionRequest
 ): Promise<MLPredictionResponse> => {
-  logger.info(' MOCK ML: Simulating prediction', { predictionId: request.predictionId });
+  logger.info('🧪 MOCK ML: Simulating prediction', { predictionId: request.predictionId });
   
-  // Simulate processing delay (real ML takes 30-120 seconds)
-  await new Promise(resolve => setTimeout(resolve, 2000)); // 2 seconds for testing
+  await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Generate mock TNM staging (our real model will compute these)
   const tStages = ['T1a', 'T1b', 'T2a', 'T2b', 'T3', 'T4'];
   const nStages = ['N0', 'N1', 'N2', 'N3'];
   const mStages = ['M0', 'M1a'];
@@ -138,6 +138,10 @@ const mockMLPrediction = async (
   const mStage = mStages[Math.floor(Math.random() * mStages.length)];
   const overallStage = overallStages[Math.floor(Math.random() * overallStages.length)];
   
+  // Calculate feature importance dynamically based on what was uploaded
+  const hasRnaSeq = !!request.files.rnaSeqData;
+  const hasMutation = !!request.files.mutationData;
+  
   return {
     success: true,
     predictionId: request.predictionId,
@@ -147,22 +151,24 @@ const mockMLPrediction = async (
         nStage,
         mStage,
         overallStage,
-        confidence: 0.85 + Math.random() * 0.1 // 0.85-0.95
+        confidence: 0.85 + Math.random() * 0.1
       },
       survivalPrediction: {
         oneYearSurvival: 0.7 + Math.random() * 0.2,
         threeYearSurvival: 0.5 + Math.random() * 0.2,
         fiveYearSurvival: 0.3 + Math.random() * 0.2
       },
+      // UPDATED: Dynamic feature importance
       featureImportance: {
-        pathology: 0.4,
-        radiology: 0.3,
-        clinical: 0.2,
-        genomic: 0.1
+        pathology: 0.35,
+        radiology: 0.25,
+        clinical: 0.15,
+        rnaSeq: hasRnaSeq ? 0.15 : 0,
+        mutation: hasMutation ? 0.10 : 0
       }
     },
     processingTime: 45.3,
-    message: 'Mock prediction completed successfully'
+    message: `Mock prediction completed (RNA-Seq: ${hasRnaSeq}, Mutations: ${hasMutation})`
   };
 };
 
