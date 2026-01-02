@@ -1,0 +1,28 @@
+┌─────────────────────────────────────────────────────────────────┐
+│                    FRONTEND (Next.js)                │
+│  User uploads files → creates prediction request                │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              BACKEND API (Express)                  │
+│                                                                  │
+│  1. Receives prediction request                                 │
+│  2. Validates files exist                                       │
+│  3. Prepares ML payload                                         │
+│  4. Sends to ML Backend (async)                                 │
+│  5. Updates prediction status                                   │
+│  6. Stores results when ML completes                            │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│          ML BACKEND (Python/PyTorch -  Future Work)         │
+│                                                                  │
+│  Endpoints I'll build later:                                  │
+│  POST /predict → accepts file paths, returns staging            │
+│  GET /status/:predictionId → check processing status            │
+│  POST /webhook → sends results back when done                   │
+│                                                                  │
+│  For now: We'll MOCK these responses                            │
+└─────────────────────────────────────────────────────────────────┘

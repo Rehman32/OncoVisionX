@@ -1,16 +1,55 @@
-# React + Vite
+# 🏥 OncoVisionX: Multi-Modal Deep Learning for NSCLC Cancer Staging
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+##  Project Overview
+OncoVisionX is an AI-powered system for automated Non-Small Cell Lung Cancer (NSCLC) staging using multi-modal medical data including:
+- 🔬 **Pathology**: Whole Slide Images (WSI)
+- 🫁 **Radiology**: CT Scans
+- 📊 **Clinical**: Patient demographics and lab values
++ Genomics :patient genomics like rna sequence and mutation
 
-Currently, two official plugins are available:
+**Target Performance:** 90%+ staging accuracy
+**Dataset:** TCGA-LUAD (The Cancer Genome Atlas - Lung Adenocarcinoma)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎓 Academic Context
+- **Project Type:** Final Year Project (FYP)
+- **Institution:** Riphah International University
+- **Timeline:** October 2025 - May 2026
+- **Supervisor:** Mr. Uzair Rasheed
 
-## React Compiler
+## 🛠️ Technology Stack
+- **Framework:** PyTorch + PyTorch Lightning
+- **Compute:** Google Colab (Free T4 GPU)
+- **Medical Imaging:** OpenSlide, SimpleITK
+- **Visualization:** Matplotlib, Seaborn
+- **Version Control:** Git + GitHub
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📁 Project Structure
+OncoVisionX/
+├── ai_models/ # Google Colab notebooks related to ai
+├── frontend/ # frontend files
+├── backend/ # backend files
+├── docs/ # Documentation
+├── results/ # Experiment results
+└── README.md # This file
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Quick Start
+Coming soon...
+
+## 📊 Current Status
+- [x] Project setup
+- [ ] Data collection
+- [ ] Model development
+- [ ] Training & evaluation
+- [ ] Deployment
+
+## 📝 License
+MIT License - See LICENSE file for details
+
+## 🤝 Acknowledgments
+- TCGA Research Network for data access
+- Google Colab for free GPU resources
+- Open-source medical imaging community
+
+---
+*Last Updated: Novemebr 15, 2025*

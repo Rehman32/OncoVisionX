@@ -1,0 +1,56 @@
+When you're ready to connect your real Python ML backend, follow this checklist:
+
+Step 1: Python Backend Setup
+python
+# Your Python FastAPI backend should have:
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class PredictionRequest(BaseModel):
+    predictionId: str
+    patientId: str
+    files: dict
+    clinicalContext: dict
+    webhookUrl: str
+
+@app.post("/predict")
+async def predict(request: PredictionRequest):
+    # 1. Download files from paths
+    # 2. Load your PyTorch model
+    # 3. Run inference (multi-modal)
+    # 4. Call webhookUrl with results
+    
+    return {"jobId": "...", "status": "processing"}
+Step 2: Environment Variables
+bash
+# In backend/.env
+ML_API_URL=http://your-ml-server:8000
+ML_API_KEY=your-secure-api-key
+USE_MOCK_ML=false
+Step 3: Code Changes
+Open mlService.ts
+
+Uncomment the realMLPrediction axios calls
+
+Remove throw new Error('Real ML backend not configured')
+
+Test with your Python backend
+
+Step 4: Webhook Implementation
+Your Python backend should POST to:
+
+text
+POST http://your-node-api.com/api/predictions/webhook/{predictionId}
+Headers: { 'X-API-Key': 'your-ml-api-key' }
+Body: {
+  "success": true,
+  "predictionId": "...",
+  "results": {
+    "tnmStaging": { ... },
+    ...
+  },
+  "processingTime": 67.5
+}
