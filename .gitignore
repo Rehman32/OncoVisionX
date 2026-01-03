@@ -11,8 +11,8 @@ dist/
 build/
 
 # Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb
+# .ipynb_checkpoints
+# *.ipynb
 
 # Data
 data/
@@ -21,7 +21,7 @@ data/
 *.pt
 *.pth
 *.pkl
-*.csv
+# *.csv
 *.npy
 
 # Models
