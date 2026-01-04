@@ -15,6 +15,7 @@ import {
   Sparkles,
   Shield,
   Zap,
+  Printer,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,12 @@ const navItems: NavItem[] = [
     title: 'Settings',
     href: '/dashboard/settings',
     icon: Settings,
+  },
+  // Look for the list of links and add this:
+{
+    title: 'Reports',
+    href: '/dashboard/ReportGenerator', // Link to the new "Genomics/Medical Report" page
+    icon: Printer,
   },
 ];
 
@@ -206,9 +213,9 @@ export default function Sidebar() {
       <div className="relative mx-4 mt-6 mb-2">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-[1px]">
           <div className="relative rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 p-4">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400/20 dark:bg-blue-400/10 rounded-full blur-2xl"></div>
-            <div className="relative flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
+             <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400/20 dark:bg-blue-400/10 rounded-full blur-2xl"></div>
+               <div className="relative flex items-start gap-3">
+                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">

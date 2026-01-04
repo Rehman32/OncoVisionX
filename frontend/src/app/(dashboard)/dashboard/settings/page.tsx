@@ -17,7 +17,7 @@ export default function SettingsPage() {
       alert("Changes saved successfully!");
     }, 1000);
   };
-
+    
   return (
     <div className="space-y-6">
       {/* Page Header */}
