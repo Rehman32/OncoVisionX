@@ -110,7 +110,7 @@ export default function ReportsPage() {
               </div>
               <button 
                 onClick={() => window.print()} 
-                className="flex items-center gap-2 bg-white border border-slate-300 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-slate-50 text-slate-700 shadow-sm"
+               className="flex items-center gap-2 bg-white border border-slate-300 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-slate-50 text-slate-700 shadow-sm transition-all hover:scale-105 active:scale-95"
               >
                 <Printer className="h-4 w-4" /> Print Report
               </button>
