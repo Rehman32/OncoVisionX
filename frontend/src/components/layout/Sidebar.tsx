@@ -60,7 +60,7 @@ const navItems: NavItem[] = [
     roles: ['admin'],
   },
   {
-    title: 'Settings',
+    title: 'Settings',  
     href: '/dashboard/settings',
     icon: Settings,
   },
