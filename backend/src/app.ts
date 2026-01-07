@@ -1,9 +1,10 @@
-import express, { Application,Request,Response } from "express";
+import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-//import routes
+
+// Import routes
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import patientRoutes from './routes/patientRoutes';
@@ -11,15 +12,15 @@ import fileRoutes from './routes/fileRoutes';
 import predictionRoutes from './routes/predictionRoutes';
 import mfaRoutes from './routes/mfaRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import settingsRoutes from './routes/settingsRoutes';  
 
-//import middlewares
+// Import middlewares
 import { errorHandler, notFound } from './middleware/errorHandler';
-
 
 //express app
 const app: Application = express();
 
-//security middleware
+// Security middleware
 app.use(helmet());
 app.use(
   cors({
@@ -29,11 +30,11 @@ app.use(
   })
 );
 
-//rate limiting
+// Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"),
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100"),
-  message: "Too many requests from this IP , please try again later .",
+  message: "Too many requests from this IP, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
   ipv6Subnet: 56,
@@ -41,21 +42,18 @@ const limiter = rateLimit({
 
 app.use("/api", limiter);
 
-//body parser
+// Body parser
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-//logging
-
-if(process.env.NODE_ENV=== 'development'){
-    app.use(morgan('dev'));
-}
-else{
-    app.use(morgan('combined'));
+// Logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
 }
 
-//routes
-
+// Health check
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
@@ -68,27 +66,24 @@ app.get('/health', (_req: Request, res: Response) => {
 app.get('/api', (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    message: 'Welcome to CancerVision360 API',
+    message: 'Welcome to OncoVisionX API',
     version: '1.0.0',
-    documentation: '/api/docs' 
+    documentation: '/api/docs'
   });
 });
 
 // API ROUTES 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/patients',patientRoutes);
-app.use('/api/files',fileRoutes);
-app.use('/api/predictions',predictionRoutes)
+app.use('/api/patients', patientRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/predictions', predictionRoutes);
 app.use('/api/mfa', mfaRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingsRoutes);  
 
-//error handliing
-
-// 404 handler
+// Error handling
 app.use(notFound);
-
-// Global error handler
 app.use(errorHandler);
 
 export default app;
