@@ -24,6 +24,7 @@
       "id": "000f06c7-823d-4bb6-a9dc-d6b622a7c7b0",
       "request": {
         "method": "GET",
+        "header": [],
         "url": {
           "raw": "http://localhost:5000/health",
           "protocol": "http",
@@ -35,13 +36,15 @@
             "health"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "register",
       "id": "aef93c1a-13be-42d8-93da-3e9e2709330b",
       "request": {
         "method": "POST",
+        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n  \"email\": \"dr.salman@example.com\",\r\n  \"password\": \"SecurePass123\",\r\n  \"firstName\": \"Salman\",\r\n  \"lastName\": \"Khan\",\r\n  \"role\": \"doctor\",\r\n  \"phoneNumber\": \"+923193456654\",\r\n  \"licenseNumber\": \"MD-12345\",\r\n  \"institution\": \"ALI Medical Complex\",\r\n  \"department\": \"Oncology\"\r\n}",
@@ -64,13 +67,15 @@
             "register"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "register",
       "id": "3f3bba94-dde6-415e-b3e5-8968eb1de213",
       "request": {
         "method": "POST",
+        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n  \"email\": \"admin@oncovisionx.com\",\r\n  \"password\": \"AdminPass123\",\r\n  \"firstName\": \"Admin\",\r\n  \"lastName\": \"User\",\r\n  \"role\": \"admin\",\r\n  \"institution\": \"OncoVisionX\"\r\n}",
@@ -93,7 +98,8 @@
             "register"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "login",
@@ -129,7 +135,8 @@
             "login"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "auth-me",
@@ -157,7 +164,8 @@
             "me"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "update-profile",
@@ -194,7 +202,8 @@
             "update-profile"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "change-password",
@@ -231,13 +240,15 @@
             "change-password"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "refresh-token",
       "id": "66bf9a9d-743d-4ff6-9e4b-cd4c900533a5",
       "request": {
         "method": "POST",
+        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIyMTk0YzBlNzg4ZWJiYmRlNTJkOTIiLCJlbWFpbCI6ImRyLnNhbG1hbkBleGFtcGxlLmNvbSIsInJvbGUiOiJkb2N0b3IiLCJpYXQiOjE3NjM4NDI2MjEsImV4cCI6MTc2NjQzNDYyMSwiYXVkIjoiT25jb1Zpc2lvblgtdXNlcnMiLCJpc3MiOiJPbmNvVmlzaW9uWCJ9.4_F4iCneOHBQiRp6lHpb8R9sZ8UUBkn8W8GuK5hTzVc\"\r\n}",
@@ -260,13 +271,15 @@
             "refresh-token"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "auth-me",
       "id": "87d18ac0-416f-43a1-9390-53b8f4c6b650",
       "request": {
         "method": "GET",
+        "header": [],
         "url": {
           "raw": "http://localhost:5000/api/auth/me",
           "protocol": "http",
@@ -280,7 +293,8 @@
             "me"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "get-users",
@@ -306,7 +320,8 @@
             "users"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "Admin Listing Users",
@@ -346,7 +361,8 @@
             }
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "get-user-by-id",
@@ -373,7 +389,8 @@
             "6922194c0e788ebbbde52d92"
           ]
         }
-      }
+      },
+      "response": []
     }
   ]
 }
