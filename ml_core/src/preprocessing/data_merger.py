@@ -1,15 +1,8 @@
 """
 Data Merger Module
 ==================
-Merges HAM10000 and ISIC 2019 datasets while removing duplicates.
+this will merge isic and ham10000 and will remove duplicates as isic 2019 contains some ham10000 images , and will also do label harmonization as isic is one hot encoding and ham is dx column
 
-Design Decisions:
-- Dermoscopic-only (no clinical/smartphone photos)
-- Duplicate removal: ISIC 2019 contains some HAM10000 images
-- Label harmonization: ISIC uses one-hot encoding, HAM uses dx column
-
-Author: [Your Name]
-Date: February 2026
 """
 
 import pandas as pd
