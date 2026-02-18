@@ -1,0 +1,137 @@
+# OncoVisionX Configuration File
+# ================================
+# Centralized configuration for reproducibility and easy experimentation
+
+project:
+  name: "OncoVisionX"
+  version: "1.0.0"
+  description: "AI-powered skin lesion triage system"
+  random_seed: 42
+
+paths:
+  # Data directories
+  data_root: "data"
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  
+  # Image directories (we'll handle both HAM and ISIC)
+  ham_images: "data/raw/HAM_10000/images"
+  isic_images: "data/raw/ISIC_2019/ISIC_2019_Training_Input"
+  
+  # Metadata paths
+  train_csv: "data/processed/train.csv"
+  val_csv: "data/processed/val.csv"
+  test_csv: "data/processed/test.csv"
+  master_csv: "data/processed/master_metadata.csv"
+  
+  # Output directories
+  logs_dir: "logs"
+  checkpoints_dir: "checkpoints"
+  results_dir: "results"
+
+dataset:
+  # Image preprocessing
+  image_size: 224  # EfficientNet-B0 default
+  num_classes: 8
+  class_names: ['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'scc', 'vasc']
+  
+  # ImageNet normalization (for transfer learning)
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+  
+  # Class encoding (alphabetical order for consistency)
+  class_to_idx:
+    akiec: 0
+    bcc: 1
+    bkl: 2
+    df: 3
+    mel: 4
+    nv: 5
+    scc: 6
+    vasc: 7
+
+augmentation:
+  # Training augmentations
+  train:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotate_90: 0.5
+    shift_scale_rotate:
+      shift_limit: 0.1
+      scale_limit: 0.1
+      rotate_limit: 45
+      p: 0.5
+    color_jitter:
+      brightness: 0.2
+      contrast: 0.2
+      saturation: 0.2
+      hue: 0.1
+      p: 0.3
+    gaussian_blur:
+      blur_limit: [3, 7]
+      p: 0.2
+    
+  # Validation/Test (no augmentation, only resize + normalize)
+  val_test:
+    resize_only: true
+
+training:
+  # Hyperparameters
+  batch_size: 32
+  num_epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  
+  # Optimizer
+  optimizer: "Adam"
+  scheduler: "ReduceLROnPlateau"
+  scheduler_params:
+    mode: "max"
+    factor: 0.5
+    patience: 5
+    min_lr: 0.00001
+  
+  # DataLoader settings
+  num_workers: 4  # Parallel data loading (adjust based on CPU cores)
+  pin_memory: true  # Faster GPU transfer
+  prefetch_factor: 2
+  
+  # Class imbalance handling
+  use_class_weights: true
+  weighted_sampling: false  # Set true for oversampling minority classes
+  
+  # Early stopping
+  early_stopping_patience: 10
+  
+  # Mixed precision training (faster on modern GPUs)
+  use_amp: true
+
+model:
+  # Architecture
+  backbone: "efficientnet_b0"
+  pretrained: true
+  dropout: 0.3
+  
+  # Loss function
+  criterion: "CrossEntropyLoss"  # Will use class weights
+
+logging:
+  # Wandb/Tensorboard integration
+  use_wandb: false
+  wandb_project: "oncovisionx"
+  
+  # Console logging
+  log_interval: 10  # Log every N batches
+  
+  # Checkpointing
+  save_best_only: true
+  save_frequency: 5  # Save every N epochs
+
+hardware:
+  # Device configuration
+  device: "cuda"  # Will auto-fallback to CPU if CUDA unavailable
+  gpu_ids: [0]  # Multi-GPU support (future)
+  
+  # Memory optimization
+  gradient_accumulation_steps: 1
+  max_grad_norm: 1.0  # Gradient clipping
