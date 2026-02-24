@@ -8,47 +8,37 @@ project:
   description: "AI-powered skin lesion triage system"
   random_seed: 42
 
+# Colab: /content/drive/MyDrive/Skin_triage_data/ml_core
+# Local: E:/OncoVisionX/ml_core
+
 paths:
-  # Data directories
-  data_root: "data"
-  raw_dir: "data/raw"
-  processed_dir: "data/processed"
-  
-  # Image directories (we'll handle both HAM and ISIC)
-  ham_images: "data/raw/HAM_10000/images"
-  isic_images: "data/raw/ISIC_2019/ISIC_2019_Training_Input"
-  
-  # Metadata paths
-  train_csv: "data/processed/train.csv"
-  val_csv: "data/processed/val.csv"
-  test_csv: "data/processed/test.csv"
-  master_csv: "data/processed/master_metadata.csv"
-  
-  # Output directories
-  logs_dir: "logs"
-  checkpoints_dir: "checkpoints"
-  results_dir: "results"
+  data_root:         "data"
+  raw_dir:           "data/raw"
+  processed_dir:     "data/processed"
+  ham_images:        "data/raw/HAM_10000/images"
+  isic_images:       "data/raw/ISIC_2019/ISIC_2019_Training_Input"
+  train_csv:         "data/processed/train.csv"
+  val_csv:           "data/processed/val.csv"
+  test_csv:          "data/processed/test.csv"
+  checkpoints_dir:   "checkpoints"
+  logs_dir:          "logs"
+  results_dir:       "results"
 
 dataset:
-  # Image preprocessing
-  image_size: 224  # EfficientNet-B0 default
+  image_size:  224
   num_classes: 8
   class_names: ['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'scc', 'vasc']
-  
-  # ImageNet normalization (for transfer learning)
-  mean: [0.485, 0.456, 0.406]
-  std: [0.229, 0.224, 0.225]
-  
-  # Class encoding (alphabetical order for consistency)
   class_to_idx:
     akiec: 0
-    bcc: 1
-    bkl: 2
-    df: 3
-    mel: 4
-    nv: 5
-    scc: 6
-    vasc: 7
+    bcc:   1
+    bkl:   2
+    df:    3
+    mel:   4
+    nv:    5
+    scc:   6
+    vasc:  7
+  mean: [0.485, 0.456, 0.406]
+  std:  [0.229, 0.224, 0.225]
 
 augmentation:
   # Training augmentations
@@ -76,44 +66,33 @@ augmentation:
     resize_only: true
 
 training:
-  # Hyperparameters
-  batch_size: 32
-  num_epochs: 50
-  learning_rate: 0.001
-  weight_decay: 0.0001
-  
-  # Optimizer
-  optimizer: "Adam"
-  scheduler: "ReduceLROnPlateau"
-  scheduler_params:
-    mode: "max"
-    factor: 0.5
-    patience: 5
-    min_lr: 0.00001
-  
-  # DataLoader settings
-  num_workers: 4  # Parallel data loading (adjust based on CPU cores)
-  pin_memory: true  # Faster GPU transfer
-  prefetch_factor: 2
-  
-  # Class imbalance handling
-  use_class_weights: true
-  weighted_sampling: false  # Set true for oversampling minority classes
-  
-  # Early stopping
-  early_stopping_patience: 10
-  
-  # Mixed precision training (faster on modern GPUs)
-  use_amp: true
+  batch_size:             32
+  num_epochs:             30
+  learning_rate:          0.0001
+  weight_decay:           0.0001
+  num_workers:            2       # 2 for Colab stability
+  pin_memory:             true
+  use_amp:                true    # Mixed precision on T4 GPU
+  use_class_weights:      true
+  early_stopping_patience: 7
+  grad_clip_norm:         1.0
+  scheduler_patience:     4
+  scheduler_factor:       0.5
+  min_lr:                 0.000001
 
-model:
-  # Architecture
-  backbone: "efficientnet_b0"
-  pretrained: true
-  dropout: 0.3
-  
-  # Loss function
-  criterion: "CrossEntropyLoss"  # Will use class weights
+models:
+  efficientnet_b0:
+    backbone:  "efficientnet_b0"
+    dropout:   0.3
+    pretrained: true
+  resnet50:
+    backbone:  "resnet50"
+    dropout:   0.3
+    pretrained: true
+  convnext_tiny:
+    backbone:  "convnext_tiny"
+    dropout:   0.3
+    pretrained: true
 
 logging:
   # Wandb/Tensorboard integration

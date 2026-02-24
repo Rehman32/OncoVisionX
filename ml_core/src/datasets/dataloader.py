@@ -261,7 +261,7 @@ def create_dataloaders_from_config(config) -> Dict[str, DataLoader]:
     
     # Training dataloader (with optional weighted sampling)
     sampler = None
-    if config.training.weighted_sampling:
+    if getattr(config.training, 'weighted_sampling', False):
         sampler = create_weighted_sampler(
             str(project_root / config.paths.train_csv),
             config.dataset.class_to_idx
