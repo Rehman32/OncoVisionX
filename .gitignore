@@ -24,14 +24,20 @@ data/
 # *.csv
 *.npy
 
+# FAISS indexes
+*.faiss
+*.index
+*.idx
+*.bin
+faiss_index/
+faiss_indexes/
+vector_store/
+indexes/
+
 # Models
 models/checkpoints/
 *.ckpt
 *.weights
-
-
-
-
 
 # Dependencies
 node_modules/
@@ -79,4 +85,3 @@ backend/uploads/
 # Misc
 .vercel
 *.pem
-
