@@ -1,1 +1,2 @@
-from .classifier import SkinLesionClassifier, build_model
+# src/models/init.py
+from .classifier import MultimodalSkinClassifier
