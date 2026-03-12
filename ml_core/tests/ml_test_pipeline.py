@@ -6,7 +6,7 @@ from pprint import pprint
 # Ensure the local src package is discoverable
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.models.inference import SkinTriagePipeline
+from src.pipeline.skin_triage_pipeline import SkinTriagePipeline
 
 def main():
     base_dir = Path(__file__).parent
