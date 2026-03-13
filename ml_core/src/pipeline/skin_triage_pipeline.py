@@ -116,6 +116,14 @@ class SkinTriagePipeline:
         """Main Public Interface for FastAPI to call."""
         start_time = time.time()
         
+        def _finalize(out_dict: dict) -> dict:
+            """Helper to guarantee API contract compliance on all exit paths."""
+            out_dict["inference_time_ms"] = (time.time() - start_time) * 1000
+            # Logger generates the UUID and writes to disk
+            request_id = self.logger.log_inference(meta_dict, out_dict)
+            out_dict["request_id"] = request_id
+            return out_dict
+        
         # 1. Load Image
         image = Image.open(image_path).convert('RGB')
         image_np = np.array(image)
@@ -123,9 +131,10 @@ class SkinTriagePipeline:
         # 2. Quality Gate
         q_result = self._quality_gate(image_np)
         if not q_result["passed"]:
-            output = {"decision": "REJECT_QUALITY", "blur_variance": q_result["variance"]}
-            self.logger.log_inference(meta_dict, output)
-            return output
+            return _finalize({
+                "decision": "REJECT_QUALITY", 
+                "blur_variance": q_result["variance"]
+            })
             
         # 3. Base Transform for OOD
         base_tensor = self.transform(image=image_np)['image'].unsqueeze(0).to(self.device)
@@ -133,9 +142,10 @@ class SkinTriagePipeline:
         # 4. OOD Detection (Visual Only)
         ood_sim = self._check_ood(base_tensor)
         if ood_sim < self.ood_threshold:
-            output = {"decision": "REJECT_OOD", "ood_similarity": ood_sim}
-            self.logger.log_inference(meta_dict, output)
-            return output
+            return _finalize({
+                "decision": "REJECT_OOD", 
+                "ood_similarity": ood_sim
+            })
             
         # 5. Metadata Processing
         meta_tensor = self._parse_metadata(meta_dict)
@@ -160,7 +170,7 @@ class SkinTriagePipeline:
         # 9. Compute classic entropy
         entropy_val = float(-np.sum(probs * np.log(probs + 1e-9)))
         
-        output = {
+        return _finalize({
             "decision": decision,
             "prediction_set": pred_set,
             "predicted_class": pred_class,
@@ -169,11 +179,5 @@ class SkinTriagePipeline:
             "ood_similarity": ood_sim,
             "coverage_guarantee": 0.90,
             "blur_variance": q_result["variance"],
-            "saliency_map_b64": gradcam_b64,
-            "inference_time_ms": (time.time() - start_time) * 1000
-        }
-        
-        request_id = self.logger.log_inference(meta_dict, output)
-        output["request_id"] = request_id
-        
-        return output
+            "saliency_map_b64": gradcam_b64
+        })
