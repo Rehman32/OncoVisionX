@@ -1,227 +1,143 @@
-import { Document, Schema, Types } from "mongoose";
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-// TNM stages according AJCC 8 edition
-export type TStage = "T0" | "T1" | "T1a" | "T1b" | "T1c" | "T2" | "T2a" | "T2b" | "T3" | "T4";
-export type NStage = "N0" | "N1" | "N2" | "N3";
-export type MStage = "M0" | "M1" | "M1a" | "M1b" | "M1c";
-export type OverallStage = "IA1" | "IA2" | "IA3" | "IB" | "IIA" | "IIB" | "IIIA" | "IIIB" | "IIIC" | "IVA" | "IVB";
+// ==================== ENUMS ====================
+export const DECISION_TYPES = [
+  'ACCEPT',
+  'DEFER_TO_DOCTOR',
+  'REJECT_QUALITY',
+  'REJECT_OOD',
+] as const;
 
+export type DecisionType = typeof DECISION_TYPES[number];
+
+// ==================== INTERFACE ====================
 export interface IPrediction extends Document {
-  _id: mongoose.Types.ObjectId;
-  predictionId: String;
-  patient: Types.ObjectId;
-  requestedBy: Types.ObjectId;
-  status: "pending" | "processing" | "completed" | "failed";
+  predictionId: string;
+  patient: mongoose.Types.ObjectId;
+  requestedBy: mongoose.Types.ObjectId;
 
-  // ========================================================
-  // UPDATED: Genomic data split into RNA-Seq + Mutations
-  // ========================================================
-  uploadedFiles: {
-    pathologyImages?: Array<{
-      fileId: string;
-      fileName: string;
-      fileSize: number;
-      uploadedAt: Date;
-    }>;
-    radiologyScans?: Array<{
-      fileId: string;
-      fileName: string;
-      fileSize: number;
-      uploadedAt: Date;
-    }>;
-    clinicalData?: {
-      fileId: string;
-      fileName: string;
-      uploadedAt: Date;
-    };
-    // NEW: RNA Sequencing Data
-    rnaSeqData?: {
-      fileId: string;
-      fileName: string;
-      uploadedAt: Date;
-    };
-    // NEW: Mutation/Variant Data
-    mutationData?: {
-      fileId: string;
-      fileName: string;
-      uploadedAt: Date;
-    };
-  };
+  // Uploaded image
+  imageFileId: string;
+  originalFileName: string;
 
-  results?: {
-    tnmStaging: {
-      tStage: TStage;
-      nStage: NStage;
-      mStage: MStage;
-      overallStage: OverallStage;
-      confidence: number;
-    };
-    survivalPrediction?: {
-      oneYearSurvival: number;
-      threeYearSurvival: number;
-      fiveYearSurvival: number;
-    };
-    attentionMaps?: {
-      pathologyMapUrl?: string;
-      radiologyMapUrl?: string;
-    };
-    featureImportance?: {
-      pathology: number;
-      radiology: number;
-      clinical: number;
-      // UPDATED: Separate importance for RNA and mutations
-      rnaSeq: number;
-      mutation: number;
-    };
-  };
-  processingTime?: number;
+  // FastAPI response fields
+  requestId: string;
+  decision: DecisionType;
+  predictionSet: string[];
+  predictedClass?: string;
+  confidence: number;
+  entropy: number;
+  oodSimilarity: number;
+  coverageGuarantee: number;
+  blurVariance: number;
+  saliencyMapUrl: string;
+  inferenceTimeMs: number;
+
+  // Status
+  status: 'completed' | 'failed';
   errorMessage?: string;
-  completedAt?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Schema
+// ==================== SCHEMA ====================
 const PredictionSchema = new Schema<IPrediction>(
   {
     predictionId: {
       type: String,
-      required: true,
       unique: true,
-      uppercase: true,
-      index: true
+      required: true,
     },
-    
     patient: {
       type: Schema.Types.ObjectId,
       ref: 'Patient',
-      required: true,
-      index: true
+      required: [true, 'Patient reference is required'],
     },
-    
     requestedBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
-      index: true
+      required: [true, 'Requesting user is required'],
     },
-    
+
+    // Uploaded image
+    imageFileId: {
+      type: String,
+      required: [true, 'Image file path is required'],
+    },
+    originalFileName: {
+      type: String,
+      required: true,
+    },
+
+    // FastAPI response fields
+    requestId: {
+      type: String,
+    },
+    decision: {
+      type: String,
+      enum: DECISION_TYPES,
+    },
+    predictionSet: {
+      type: [String],
+      default: [],
+    },
+    predictedClass: {
+      type: String,
+    },
+    confidence: {
+      type: Number,
+    },
+    entropy: {
+      type: Number,
+    },
+    oodSimilarity: {
+      type: Number,
+    },
+    coverageGuarantee: {
+      type: Number,
+    },
+    blurVariance: {
+      type: Number,
+    },
+    saliencyMapUrl: {
+      type: String,
+    },
+    inferenceTimeMs: {
+      type: Number,
+    },
+
+    // Status
     status: {
       type: String,
-      enum: ['pending', 'processing', 'completed', 'failed'],
-      default: 'pending',
-      index: true
+      enum: ['completed', 'failed'],
+      default: 'completed',
     },
-    
-    uploadedFiles: {
-      pathologyImages: [
-        {
-          fileId: String,
-          fileName: String,
-          fileSize: Number,
-          uploadedAt: Date
-        }
-      ],
-      
-      radiologyScans: [
-        {
-          fileId: String,
-          fileName: String,
-          fileSize: Number,
-          uploadedAt: Date
-        }
-      ],
-      
-      clinicalData: {
-        fileId: String,
-        fileName: String,
-        uploadedAt: Date
-      },
-      
-      // NEW: RNA-Seq Data
-      rnaSeqData: {
-        fileId: String,
-        fileName: String,
-        uploadedAt: Date
-      },
-      
-      // NEW: Mutation Data
-      mutationData: {
-        fileId: String,
-        fileName: String,
-        uploadedAt: Date
-      }
+    errorMessage: {
+      type: String,
     },
-    
-    results: {
-      tnmStaging: {
-        tStage: {
-          type: String,
-          enum: ['T0', 'T1', 'T1a', 'T1b', 'T1c', 'T2', 'T2a', 'T2b', 'T3', 'T4']
-        },
-        nStage: {
-          type: String,
-          enum: ['N0', 'N1', 'N2', 'N3']
-        },
-        mStage: {
-          type: String,
-          enum: ['M0', 'M1', 'M1a', 'M1b', 'M1c']
-        },
-        overallStage: {
-          type: String,
-          enum: ['IA1', 'IA2', 'IA3', 'IB', 'IIA', 'IIB', 'IIIA', 'IIIB', 'IIIC', 'IVA', 'IVB']
-        },
-        confidence: {
-          type: Number,
-          min: 0,
-          max: 1
-        }
-      },
-      
-      survivalPrediction: {
-        oneYearSurvival: {
-          type: Number,
-          min: 0,
-          max: 1
-        },
-        threeYearSurvival: {
-          type: Number,
-          min: 0,
-          max: 1
-        },
-        fiveYearSurvival: {
-          type: Number,
-          min: 0,
-          max: 1
-        }
-      },
-      
-      attentionMaps: {
-        pathologyMapUrl: String,
-        radiologyMapUrl: String
-      },
-      
-      featureImportance: {
-        pathology: Number,
-        radiology: Number,
-        clinical: Number,
-        rnaSeq: Number,      // NEW
-        mutation: Number      // NEW
-      }
-    },
-    
-    processingTime: Number,
-    errorMessage: String,
-    completedAt: Date
   },
   {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-// Indexes
-PredictionSchema.index({ patient: 1, createdAt: -1 });
-PredictionSchema.index({ requestedBy: 1, status: 1 });
+// ==================== INDEXES ====================
+PredictionSchema.index({ predictionId: 1 });
+PredictionSchema.index({ patient: 1 });
+PredictionSchema.index({ requestedBy: 1 });
+PredictionSchema.index({ decision: 1 });
+PredictionSchema.index({ status: 1 });
+PredictionSchema.index({ createdAt: -1 });
+
+// ==================== STATICS ====================
+PredictionSchema.statics.generatePredictionId = async function (): Promise<string> {
+  const year = new Date().getFullYear();
+  const count = await this.countDocuments();
+  const nextId = (count + 1).toString().padStart(4, '0');
+  return `PRED-${year}-${nextId}`;
+};
 
 export default mongoose.model<IPrediction>('Prediction', PredictionSchema);

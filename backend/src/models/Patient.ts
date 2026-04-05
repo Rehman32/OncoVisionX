@@ -1,238 +1,141 @@
-import mongoose, { Document, Schema, Types } from "mongoose";
-import bcrypt from "bcryptjs";
-import { kMaxLength } from "buffer";
+import mongoose, { Schema, Document } from 'mongoose';
 
+// ==================== HAM10000 ANATOMICAL SITES ====================
+export const ANATOMICAL_SITES = [
+  'abdomen', 'acral', 'back', 'chest', 'ear', 'face', 'foot',
+  'genital', 'hand', 'lower extremity', 'neck', 'scalp', 'trunk',
+  'unknown', 'upper extremity',
+] as const;
+
+export type AnatomicalSite = typeof ANATOMICAL_SITES[number];
+export type PatientSex = 'male' | 'female' | 'unknown';
+
+// ==================== INTERFACE ====================
 export interface IPatient extends Document {
-  _id: mongoose.Types.ObjectId;
-  patientId: String;
-
-  personalInfo: {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: Date;
-    age: number;
-    gender: "male" | "female" | "other";
-    bloodType?: string;
-    contactNumber?: string;
-    email?: string;
-    address?: {
-      street?: string;
-      city?: string;
-      state?: string;
-      zipCode?: string;
-      country?: string;
-    };
-  };
-
-  medicalInfo: {
-    height?: number; // cm
-    weight?: number; // kg
-    smokingStatus?: "never" | "former" | "current";
-    smokingPackYears?: number;
-    comorbidities?: string[];
-    allergies?: string[];
-    currentMedications?: string[];
-    performanceStatus?: number; // ECOG scale 0-5
-  };
-
-  emergencyContact?: {
-    name: string;
-    relationship: string;
-    phoneNumber: string;
-  };
-
-  assignedDoctor?: Types.ObjectId; // reference to User (doctor)
-  createdBy: Types.ObjectId; // reference to User who created
-  updatedBy?: Types.ObjectId; // reference to User who last updated
+  patientId: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: Date;
+  sex: PatientSex;
+  anatomicalSite: AnatomicalSite;
+  contactNumber?: string;
+  email?: string;
+  notes?: string;
+  assignedDoctor?: mongoose.Types.ObjectId;
+  createdBy: mongoose.Types.ObjectId;
+  updatedBy?: mongoose.Types.ObjectId;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  // Virtuals
+  fullName: string;
+  age: number;
 }
 
+// ==================== SCHEMA ====================
 const PatientSchema = new Schema<IPatient>(
   {
     patientId: {
       type: String,
-      required: [true, "Patient Id is required"],
       unique: true,
-      uppercase: true,
-      match: [
-        /^P-\d{4}-\d{3}$/,
-        "Patient ID must follow format: P-YYYY-XXX (e.g., P-2024-001)",
-      ],
-      index: true,
+      required: true,
     },
-    personalInfo: {
-      firstName: {
-        type: String,
-        required: [true, "First Name is required "],
-        trim: true,
-        maxlength: [20, "First name cannot exceed 20 characters"],
-      },
-      lastName: {
-        type: String,
-        required: [true, "Last Name is required "],
-        trim: true,
-        maxlength: [20, "Last name cannot exceed 20 characters"],
-      },
-
-      dateOfBirth: {
-        type: Date,
-        required: [true, "DOB is required "],
-        validate: {
-          validator: function (value: Date): boolean {
-            return value < new Date(); // Must be in the past
-          },
-          message: "Date of birth must be in the past",
-        },
-      },
-
-      gender: {
-        type: String,
-        required: [true, "Gender is Required "],
-        enum: {
-          values: ["male", "female", "other"],
-          message: "{VALUE} is not a valid gender",
-        },
-        trim: true,
-      },
-      bloodType: {
-        type: String,
-        enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
-      },
-      contactNumber: String,
-
-      email: {
-        type: String,
-        lowercase: true,
-        match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
-      },
-
-      address: {
-        street: String,
-        city: String,
-        state: String,
-        zipCode: String,
-        country: String,
-      },
+    firstName: {
+      type: String,
+      required: [true, 'First name is required'],
+      trim: true,
+      maxlength: [50, 'First name cannot exceed 50 characters'],
     },
-
-    medicalInfo: {
-      height: {
-        type: Number,
-        min: [50, "Height must be at least 50 cm"],
-        max: [300, "Height cannot exceed 300 cm"],
-      },
-
-      weight: {
-        type: Number,
-        min: [10, "Weight must be at least 10 kg"],
-        max: [500, "Weight cannot exceed 500 kg"],
-      },
-
-      smokingStatus: {
-        type: String,
-        enum: ["never", "former", "current"],
-      },
-
-      smokingPackYears: {
-        type: Number,
-        min: 0,
-      },
-
-      comorbidities: [String],
-      allergies: [String],
-      currentMedications: [String],
-
-      performanceStatus: {
-        type: Number,
-        min: 0,
-        max: 5,
-      },
+    lastName: {
+      type: String,
+      required: [true, 'Last name is required'],
+      trim: true,
+      maxlength: [50, 'Last name cannot exceed 50 characters'],
     },
-    emergencyContact: {
-      name: String,
-      relationship: String,
-      phoneNumber: String,
+    dateOfBirth: {
+      type: Date,
+      required: [true, 'Date of birth is required'],
     },
-
+    sex: {
+      type: String,
+      enum: ['male', 'female', 'unknown'],
+      required: [true, 'Sex is required'],
+      default: 'unknown',
+    },
+    anatomicalSite: {
+      type: String,
+      enum: ANATOMICAL_SITES,
+      required: [true, 'Anatomical site is required'],
+      default: 'unknown',
+    },
+    contactNumber: {
+      type: String,
+      trim: true,
+    },
+    email: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+    notes: {
+      type: String,
+      maxlength: [2000, 'Notes cannot exceed 2000 characters'],
+    },
     assignedDoctor: {
       type: Schema.Types.ObjectId,
-      ref: "User", // reference to User collection
-      index: true,
+      ref: 'User',
     },
-
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
-      index: true,
     },
-
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
-
     isActive: {
       type: Boolean,
       default: true,
-      index: true,
     },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-//indexes 
-
-PatientSchema.index({
-    'personalInfo.firstName' : 1, "personalInfo.lastName" : 1
+// ==================== VIRTUALS ====================
+PatientSchema.virtual('fullName').get(function (this: IPatient) {
+  return `${this.firstName} ${this.lastName}`;
 });
 
-PatientSchema.index({
-    createdAt: -1
-});
-
-PatientSchema.index({
-    'assignedDoctor' : 1, 'isActive' : 1
-});
-
-//virtual fields 
-
-//full name
-PatientSchema.virtual('fullName').get(function (){
-    return `${this.personalInfo.firstName} ${this.personalInfo.lastName}`
-});
-
-
-//age
-PatientSchema.virtual('age').get(function () {
+PatientSchema.virtual('age').get(function (this: IPatient) {
+  if (!this.dateOfBirth) return 0;
   const today = new Date();
-  const birthDate = new Date(this.personalInfo.dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+  const birth = new Date(this.dateOfBirth);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
     age--;
   }
-  
   return age;
 });
 
+// ==================== INDEXES ====================
+PatientSchema.index({ patientId: 1 });
+PatientSchema.index({ lastName: 1, firstName: 1 });
+PatientSchema.index({ assignedDoctor: 1 });
+PatientSchema.index({ isActive: 1 });
+PatientSchema.index({ createdAt: -1 });
 
-//bmi
-PatientSchema.virtual('bmi').get(function () {
-  const { height, weight } = this.medicalInfo;
-  if (!height || !weight) return null;
-  
-  const heightInMeters = height / 100; // Convert cm to meters
-  return Number((weight / (heightInMeters * heightInMeters)).toFixed(1));
-});
+// ==================== STATICS ====================
+PatientSchema.statics.generatePatientId = async function (): Promise<string> {
+  const year = new Date().getFullYear();
+  const count = await this.countDocuments();
+  const nextId = (count + 1).toString().padStart(4, '0');
+  return `P-${year}-${nextId}`;
+};
 
-// enable virtuals in JSON output 
-PatientSchema.set('toJSON', { virtuals: true });
-PatientSchema.set('toObject', { virtuals: true });
-
-export default mongoose.model<IPatient>('Patient',PatientSchema);
+export default mongoose.model<IPatient>('Patient', PatientSchema);
