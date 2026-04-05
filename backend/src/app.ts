@@ -3,12 +3,12 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
+import path from "path";
 
 // Import routes
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import patientRoutes from './routes/patientRoutes';
-import fileRoutes from './routes/fileRoutes';
 import predictionRoutes from './routes/predictionRoutes';
 import mfaRoutes from './routes/mfaRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
@@ -72,11 +72,13 @@ app.get('/api', (_req: Request, res: Response) => {
   });
 });
 
+// Static file serving for saliency map images
+app.use('/static/saliency', express.static(path.join(__dirname, '..', 'uploads', 'saliency')));
+
 // API ROUTES 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/patients', patientRoutes);
-app.use('/api/files', fileRoutes);
 app.use('/api/predictions', predictionRoutes);
 app.use('/api/mfa', mfaRoutes);
 app.use('/api/dashboard', dashboardRoutes);

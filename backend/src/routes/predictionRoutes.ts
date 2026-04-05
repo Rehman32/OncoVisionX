@@ -4,23 +4,21 @@ import {
   getPredictions,
   getPredictionById,
   deletePrediction,
-  handleMLWebhook
 } from '../controllers/predictionController';
 import { protect, authorize } from '../middleware/auth';
 import { auditLogger } from '../middleware/auditLogger';
+import { upload } from '../config/multer';
 
 const router = express.Router();
 
-// Webhook endpoint (public but API key protected)
-router.post('/webhook/:id', handleMLWebhook);
-
-// All other routes require authentication
+// All routes require authentication
 router.use(protect);
 
-// Create prediction
+// Create prediction — accepts multipart/form-data with dermoscopy image
 router.post(
   '/',
   authorize('admin', 'doctor'),
+  upload.single('image'),
   createPrediction,
   auditLogger('CREATE_PREDICTION', 'prediction')
 );

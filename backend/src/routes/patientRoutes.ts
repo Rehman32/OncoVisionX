@@ -4,7 +4,7 @@ import {
   getPatientById,
   createPatient,
   updatePatient,
-  deactivatePatient
+  deletePatient
 } from '../controllers/patientController';
 import { protect, authorize } from '../middleware/auth';
 import { auditLogger } from '../middleware/auditLogger';
@@ -36,7 +36,7 @@ router.put(
 router.delete(
   '/:id',
   authorize('admin'),
-  deactivatePatient,
+  deletePatient,
   auditLogger('DELETE_PATIENT', 'patient')
 );
 

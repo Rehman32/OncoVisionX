@@ -1,263 +1,215 @@
 import { Request, Response, NextFunction } from 'express';
 import Patient from '../models/Patient';
-import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors';
-import { logger } from '../utils/logger';
-import { deidentifyPatient } from '../utils/deidentify';
-
-
-// Helper: Generate Patient ID
-const generatePatientId = async (): Promise<string> => {
-  const year = new Date().getFullYear();
-  const count = await Patient.countDocuments({});
-  const sequence = String(count + 1).padStart(3, '0');
-  return `P-${year}-${sequence}`;
-};
-
-
+import { asyncHandler } from '../utils/asyncHandler';
+import { BadRequestError, NotFoundError } from '../utils/errors';
 
 /**
- * GET /api/patients
- Get all patients
+ * @route   POST /api/patients
+ * @desc    Create a new patient
+ * @access  Admin, Doctor
  */
-export const getPatients = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { page = 1, limit = 10, search = '' } = req.query;
-    const userId = (req as any).user.userId;
-    const userRole = (req as any).user.role;
-
-    const query: any = { isActive: true };
-
-    // 1. RBAC filters
-    if (userRole === 'doctor') {
-      query.assignedDoctor = userId;
-    }
-
-    if (search) {
-      const s = search as string;
-      query.$or = [
-        { patientId: { $regex: new RegExp(s, 'i') } },
-        { 'personalInfo.firstName': { $regex: new RegExp(s, 'i') } },
-        { 'personalInfo.lastName': { $regex: new RegExp(s, 'i') } }
-      ];
-    }
-
-    // 2. Fetch Hydrated Mongoose Documents
-    const patientDocs = await Patient.find(query)
-      .sort({ createdAt: -1 })
-      .skip((+page - 1) * +limit)
-      .limit(+limit);
-
-    const total = await Patient.countDocuments(query);
-
-    // 3. Prepare Response Data
-    // We use "any[]" or a union type here because the shape changes for researchers
-    let responseData: any[];
-
-    if (userRole === 'researcher') {
-      // Transform to plain objects and strip PII
-      responseData = patientDocs.map(p => deidentifyPatient(p.toObject()));
-      
-      logger.info('De-identified patient data served to researcher', { 
-        userId, 
-        count: responseData.length 
-      });
-    } else {
-      // For doctors/admins, return the full object (including virtuals)
-      responseData = patientDocs.map(p => p.toObject());
-      
-      logger.info('Full patient list accessed', {
-        userId,
-        userRole,
-        count: responseData.length
-      });
-    }
-
-    // 4. Send Response
-    res.json({
-      success: true,
-      data: responseData,
-      meta: { 
-        total, 
-        page: +page, 
-        limit: +limit 
-      }
-    });
-  } catch (err) { 
-    next(err); 
-  }
-};
-
-/**
- * GET /api/patients/:id
- */
-export const getPatientById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = (req as any).user.userId;
-    const userRole = (req as any).user.role;
-
-    let patient = await Patient.findById(req.params.id);
-
-    if (!patient || !patient.isActive) {
-      throw new NotFoundError('Patient not found');
-    }
-
-    // RBAC: Doctor authorization
-    if (userRole === 'doctor') {
-      if (patient.assignedDoctor?.toString() !== userId) {
-        throw new ForbiddenError('You are not authorized to access this patient');
-      }
-    }
-
-    // DE-IDENTIFICATION: Transform for researchers
-    if (userRole === 'researcher') {
-      patient = deidentifyPatient(patient.toObject()) as any;
-      logger.info('De-identified patient detail served to researcher', { userId, patientId: req.params.id });
-    }
-
-    logger.info('Patient detail accessed', {
-      userId,
-      userRole,
-      patientId: patient?.patientId
-    });
-
-    res.json({ success: true, data: patient });
-  } catch (err) { next(err); }
-};
-
-/**
- * POST /api/patients
- * 
- * Business Rule:
- * - Doctors can only create patients assigned to themselves
- * - Admins can assign to any doctor
- */
-export const createPatient = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = (req as any).user.userId;
-    const userRole = (req as any).user.role;
-
+export const createPatient = asyncHandler(
+  async (req: Request, res: Response, _next: NextFunction) => {
     const {
-      personalInfo,
-      medicalInfo,
-      emergencyContact,
-      assignedDoctor
+      firstName,
+      lastName,
+      dateOfBirth,
+      sex,
+      anatomicalSite,
+      contactNumber,
+      email,
+      notes,
+      assignedDoctor,
     } = req.body;
 
-    // Validation
-    if (!personalInfo?.firstName || !personalInfo?.lastName || !personalInfo?.dateOfBirth || !personalInfo?.gender) {
-      throw new BadRequestError('Missing required personal information fields');
-    }
-
-    // RBAC: Doctors can't assign patients to other doctors
-    let finalAssignedDoctor = assignedDoctor;
-    if (userRole === 'doctor') {
-      if (assignedDoctor && assignedDoctor !== userId) {
-        logger.warn('Doctor attempted to assign patient to different doctor', {
-          requestingDoctor: userId,
-          attemptedAssignment: assignedDoctor
-        });
-        throw new ForbiddenError('You can only create patients assigned to yourself');
-      }
-      finalAssignedDoctor = userId; // Force assignment to self
+    // Validate required fields
+    if (!firstName || !lastName || !dateOfBirth || !sex || !anatomicalSite) {
+      throw new BadRequestError(
+        'firstName, lastName, dateOfBirth, sex, and anatomicalSite are required'
+      );
     }
 
     // Generate patient ID
-    const patientId = await generatePatientId();
+    const patientId = await (Patient as any).generatePatientId();
 
     const patient = await Patient.create({
       patientId,
-      personalInfo,
-      medicalInfo,
-      emergencyContact,
-      assignedDoctor: finalAssignedDoctor || userId,
-      createdBy: userId
-    });
-
-    logger.info('Patient created', {
-      patientId: patient._id,
-      createdBy: userId,
-      assignedDoctor: patient.assignedDoctor
+      firstName,
+      lastName,
+      dateOfBirth: new Date(dateOfBirth),
+      sex,
+      anatomicalSite,
+      contactNumber,
+      email,
+      notes,
+      assignedDoctor: assignedDoctor || undefined,
+      createdBy: req.user!.userId,
     });
 
     res.status(201).json({
       success: true,
       message: 'Patient created successfully',
-      data: patient
+      data: patient,
     });
-  } catch (err) { next(err); }
-};
+  }
+);
 
 /**
- * PUT /api/patients/:id
- * 
- * Authorization:
- * - Admin: Can update any patient
- * - Doctor: Only if assignedDoctor matches
+ * @route   GET /api/patients
+ * @desc    Get all patients (with search and pagination)
+ * @access  Admin, Doctor, Researcher
  */
-export const updatePatient = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = (req as any).user.userId;
-    const userRole = (req as any).user.role;
+export const getPatients = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page = 1, limit = 20, search } = req.query;
 
+    const query: any = { isActive: true };
+
+    // Role-based filtering: doctors see only their assigned patients
+    if (req.user!.role === 'doctor') {
+      query.assignedDoctor = req.user!.userId;
+    }
+
+    // Search by name or patient ID
+    if (search) {
+      const searchRegex = new RegExp(String(search), 'i');
+      query.$or = [
+        { firstName: searchRegex },
+        { lastName: searchRegex },
+        { patientId: searchRegex },
+      ];
+    }
+
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [patients, total] = await Promise.all([
+      Patient.find(query)
+        .populate('assignedDoctor', 'firstName lastName email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      Patient.countDocuments(query),
+    ]);
+
+    // De-identify for researchers
+    const data =
+      req.user!.role === 'researcher'
+        ? patients.map((p: any) => ({
+            _id: p._id,
+            patientId: p.patientId,
+            sex: p.sex,
+            dateOfBirth: p.dateOfBirth,
+            anatomicalSite: p.anatomicalSite,
+            isActive: p.isActive,
+            createdAt: p.createdAt,
+          }))
+        : patients;
+
+    res.status(200).json({
+      success: true,
+      data,
+      meta: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+      },
+    });
+  }
+);
+
+/**
+ * @route   GET /api/patients/:id
+ * @desc    Get a single patient
+ * @access  Admin, Doctor, Researcher
+ */
+export const getPatientById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const patient = await Patient.findById(req.params.id)
+      .populate('assignedDoctor', 'firstName lastName email')
+      .populate('createdBy', 'firstName lastName');
+
+    if (!patient || !patient.isActive) {
+      throw new NotFoundError('Patient not found');
+    }
+
+    res.status(200).json({
+      success: true,
+      data: patient,
+    });
+  }
+);
+
+/**
+ * @route   PUT /api/patients/:id
+ * @desc    Update a patient
+ * @access  Admin, Doctor
+ */
+export const updatePatient = asyncHandler(
+  async (req: Request, res: Response) => {
     const patient = await Patient.findById(req.params.id);
 
     if (!patient || !patient.isActive) {
       throw new NotFoundError('Patient not found');
     }
 
-    // RBAC: Authorization
-    if (userRole === 'doctor' && patient.assignedDoctor?.toString() !== userId) {
-      throw new ForbiddenError('You are not authorized to modify this patient');
-    }
+    const allowedFields = [
+      'firstName',
+      'lastName',
+      'dateOfBirth',
+      'sex',
+      'anatomicalSite',
+      'contactNumber',
+      'email',
+      'notes',
+      'assignedDoctor',
+    ];
 
-    // Update fields
-    patient.personalInfo = { ...patient.personalInfo, ...req.body.personalInfo };
-    patient.medicalInfo = { ...patient.medicalInfo, ...req.body.medicalInfo };
-    patient.emergencyContact = { ...patient.emergencyContact, ...req.body.emergencyContact };
-    
-    // Admin can reassign patients, doctors cannot
-    if (req.body.assignedDoctor) {
-      if (userRole === 'admin') {
-        patient.assignedDoctor = req.body.assignedDoctor;
-      } else {
-        logger.warn('Non-admin attempted to reassign patient', {
-          userId,
-          patientId: patient._id
-        });
-        throw new ForbiddenError('Only admins can reassign patients');
+    const updates: any = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
       }
     }
+    updates.updatedBy = req.user!.userId;
 
-    patient.updatedBy = userId;
-    await patient.save();
+    const updated = await Patient.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true, runValidators: true }
+    )
+      .populate('assignedDoctor', 'firstName lastName email');
 
-    logger.info('Patient updated', {
-      patientId: patient._id,
-      updatedBy: userId
-    });
-
-    res.json({
+    res.status(200).json({
       success: true,
       message: 'Patient updated successfully',
-      data: patient
+      data: updated,
     });
-  } catch (err) { next(err); }
-};
+  }
+);
 
+/**
+ * @route   DELETE /api/patients/:id
+ * @desc    Soft-delete (deactivate) a patient
+ * @access  Admin
+ */
+export const deletePatient = asyncHandler(
+  async (req: Request, res: Response) => {
+    const patient = await Patient.findById(req.params.id);
 
-
-
-//delete patient : soft delete
-export const deactivatePatient= async (req:Request,res:Response,next:NextFunction) =>{
-    try {
-        const patient = await Patient.findByIdAndUpdate(req.params.id,{isActive: false}, {new: true});
-        
-        if (!patient) throw new NotFoundError('Patient not found');
-
-        res.json({ success: true, message: 'Patient deactivated' });
-
-    } catch (error) {
-        next(error)
+    if (!patient) {
+      throw new NotFoundError('Patient not found');
     }
-    
-}
+
+    patient.isActive = false;
+    patient.updatedBy = req.user!.userId as any;
+    await patient.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Patient deactivated successfully',
+    });
+  }
+);
