@@ -26,6 +26,7 @@ export interface Prediction {
   coverageGuarantee: number;
   blurVariance: number;
   saliencyMapUrl: string;
+  referenceImageUrl?: string;
   inferenceTimeMs: number;
   
   errorMessage?: string;
