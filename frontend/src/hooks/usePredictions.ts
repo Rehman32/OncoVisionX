@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
-import { CreatePredictionRequest, Prediction } from '@/types/prediction';
+import { Prediction } from '@/types/prediction';
+import { Patient } from '@/types/patient';
 import { APIResponse } from '@/types/api';
 
 export const predictionKeys = {
@@ -21,8 +22,29 @@ const getPrediction = async (id: string) => {
   return data;
 };
 
-const createPrediction = async (data: CreatePredictionRequest) => {
-  const { data: response } = await apiClient.post<APIResponse<Prediction>>('/predictions', data);
+export interface CreatePredictionPayload {
+  patient: Patient;
+  file: File;
+}
+
+const createPrediction = async ({ patient, file }: CreatePredictionPayload) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  // MANDATED API CONTRACT: Send strictly stringified JSON metadata 
+  formData.append('metadata', JSON.stringify({
+    age: patient.age || 0,
+    sex: patient.sex,
+    anatomical_site: patient.anatomicalSite
+  }));
+  
+  formData.append('patientId', patient._id);
+
+  const { data: response } = await apiClient.post<APIResponse<Prediction>>('/predictions', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 
@@ -38,11 +60,7 @@ export function usePrediction(id: string) {
   return useQuery({
     queryKey: predictionKeys.detail(id),
     queryFn: () => getPrediction(id),
-    refetchInterval: (query) => {
-      // Auto-refetch if status is processing
-      const status = query.state.data?.data?.status;
-      return status === 'processing' || status === 'pending' ? 5000 : false;
-    },
+    refetchInterval: false, // Poll logic removed as requests are now synchronous
   });
 }
 
@@ -53,10 +71,9 @@ export function useCreatePrediction() {
     mutationFn: createPrediction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: predictionKeys.lists() });
-      toast.success('Prediction request submitted successfully');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create prediction');
+      toast.error(error.response?.data?.message || 'Failed to request triage prediction');
     },
   });
 }
