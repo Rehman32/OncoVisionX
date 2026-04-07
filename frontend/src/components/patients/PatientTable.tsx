@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreVertical, Eye, Edit, FileText, Trash } from 'lucide-react';
+import { MoreVertical, Eye, Edit, FileText, Trash, Plus } from 'lucide-react';
 import { Patient } from '@/types/patient';
 import { format } from 'date-fns';
 
@@ -61,7 +61,7 @@ export default function PatientTable({
     );
   }
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <div className="rounded-lg border border-dashed p-12 text-center">
         <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
@@ -89,117 +89,109 @@ export default function PatientTable({
             <TableRow>
               <TableHead>Patient ID</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Age/Gender</TableHead>
+              <TableHead>Age / Sex</TableHead>
+              <TableHead>Anatomical Site</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Smoking Status</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((patient) => (
-              <TableRow
-                key={patient._id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => router.push(`/dashboard/patients/${patient._id}`)}
-              >
-                <TableCell className="font-mono text-sm">
-                  {patient.patientId}
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <p className="font-medium">
-                      {patient.personalInfo.firstName} {patient.personalInfo.lastName}
-                    </p>
-                    {patient.personalInfo.email && (
-                      <p className="text-sm text-muted-foreground">
-                        {patient.personalInfo.email}
+            {data.map((patient) => {
+              if (!patient) return null;
+              return (
+                <TableRow
+                  key={patient._id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => router.push(`/dashboard/patients/${patient._id}`)}
+                >
+                  <TableCell className="font-mono text-sm">
+                    {patient.patientId}
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">
+                        {patient.firstName || ''} {patient.lastName || ''}
                       </p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="text-sm">
-                    <p>{patient.age || 'N/A'} years</p>
-                    <p className="text-muted-foreground capitalize">
-                      {patient.personalInfo.gender}
-                    </p>
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm">
-                  {patient.personalInfo.contactNumber || 'N/A'}
-                </TableCell>
-                <TableCell>
-                  {patient.medicalInfo?.smokingStatus ? (
-                    <Badge
-                      variant={
-                        patient.medicalInfo.smokingStatus === 'current'
-                          ? 'destructive'
-                          : patient.medicalInfo.smokingStatus === 'former'
-                          ? 'secondary'
-                          : 'outline'
-                      }
-                    >
-                      {patient.medicalInfo.smokingStatus}
+                      {patient.email && (
+                        <p className="text-sm text-muted-foreground">
+                          {patient.email}
+                        </p>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <p>{patient.age ?? 'N/A'} years</p>
+                      <p className="text-muted-foreground capitalize">
+                        {patient.sex || 'unknown'}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="capitalize">
+                      {patient.anatomicalSite || 'unknown'}
                     </Badge>
-                  ) : (
-                    <span className="text-muted-foreground">N/A</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {format(new Date(patient.createdAt), 'MMM dd, yyyy')}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/dashboard/patients/${patient._id}`);
-                        }}
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/dashboard/patients/${patient._id}/edit`);
-                        }}
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/dashboard/predictions/new?patientId=${patient._id}`);
-                        }}
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        New Prediction
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // TODO: Add confirmation dialog
-                          console.log('Delete', patient._id);
-                        }}
-                      >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Deactivate
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {patient.contactNumber || 'N/A'}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {patient.createdAt
+                      ? format(new Date(patient.createdAt), 'MMM dd, yyyy')
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/patients/${patient._id}`);
+                          }}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/patients/${patient._id}/edit`);
+                          }}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/predictions/new?patientId=${patient._id}`);
+                          }}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          New Prediction
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Delete', patient._id);
+                          }}
+                        >
+                          <Trash className="mr-2 h-4 w-4" />
+                          Deactivate
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -233,6 +225,3 @@ export default function PatientTable({
     </div>
   );
 }
-
-// Missing import
-import { Plus } from 'lucide-react';

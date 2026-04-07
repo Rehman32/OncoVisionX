@@ -1,38 +1,33 @@
+export type AnatomicalSite =
+  | 'abdomen'
+  | 'acral'
+  | 'back'
+  | 'chest'
+  | 'ear'
+  | 'face'
+  | 'foot'
+  | 'genital'
+  | 'hand'
+  | 'lower extremity'
+  | 'neck'
+  | 'scalp'
+  | 'trunk'
+  | 'unknown'
+  | 'upper extremity';
+
 export interface Patient {
   _id: string;
   patientId: string;
-  personalInfo: {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    gender: "male" | "female" | "other";
-    bloodType?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  sex: "male" | "female" | "unknown";
+  anatomicalSite: AnatomicalSite;
 
-    contactNumber?: string;
-    email?: string;
-    address?: {
-      street?: string;
-      city?: string;
-      state?: string;
-      zipCode?: string;
-      country?: string;
-    };
-  };
-  medicalInfo?: {
-    height?: number;
-    weight?: number;
-    smokingStatus?: "never" | "former" | "current";
-    smokingPackYears?: number;
-    comorbidities?: string[];
-    allergies?: string[];
-    currentMedications?: string[];
-    performanceStatus?: number;
-  };
-  emergencyContact?: {
-    name: string;
-    relationship: string;
-    phoneNumber: string;
-  };
+  contactNumber?: string;
+  email?: string;
+  notes?: string;
+
   assignedDoctor?: string | Doctor;
   createdBy: string;
   updatedBy?: string;
@@ -41,7 +36,6 @@ export interface Patient {
   updatedAt: string;
   fullName?: string;
   age?: number;
-  bmi?: number;
 }
 
 export interface Doctor {
@@ -50,9 +44,15 @@ export interface Doctor {
   lastName: string;
   email?: string;
 }
+
 export interface CreatePatientRequest {
-  personalInfo: Patient["personalInfo"];
-  medicalInfo?: Patient["medicalInfo"];
-  emergencyContact?: Patient["emergencyContact"];
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  sex: "male" | "female" | "unknown";
+  anatomicalSite: AnatomicalSite;
+  contactNumber?: string;
+  email?: string;
+  notes?: string;
   assignedDoctor?: string;
 }
