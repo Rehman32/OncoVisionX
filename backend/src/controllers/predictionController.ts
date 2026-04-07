@@ -58,7 +58,7 @@ export const createPrediction = asyncHandler(
     await fs.promises.writeFile(savedFilePath, file.buffer);
 
     // 3. Generate prediction ID
-    const predictionId = await (Prediction as any).generatePredictionId();
+    const predictionId = `PRED-${uuidv4().slice(0, 8).toUpperCase()}`;
 
     try {
       // 4. Call FastAPI ML service synchronously
@@ -89,6 +89,7 @@ export const createPrediction = asyncHandler(
         coverageGuarantee: inferenceResult.coverageGuarantee,
         blurVariance: inferenceResult.blurVariance,
         saliencyMapUrl: inferenceResult.saliencyMapUrl,
+        referenceImageUrl: `/static/uploads/${savedFileName}`,
         inferenceTimeMs: inferenceResult.inferenceTimeMs,
         status: 'completed',
       });

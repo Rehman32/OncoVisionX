@@ -83,7 +83,7 @@ export async function requestPrediction(
       headers: {
         ...formData.getHeaders(),
       },
-      timeout: 60000, // 60s timeout for ML inference
+      timeout: 120000, // 120s timeout for ML inference
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
     });

@@ -31,6 +31,7 @@ export interface IPrediction extends Document {
   coverageGuarantee: number;
   blurVariance: number;
   saliencyMapUrl: string;
+  referenceImageUrl: string;
   inferenceTimeMs: number;
 
   // Status
@@ -103,6 +104,9 @@ const PredictionSchema = new Schema<IPrediction>(
     saliencyMapUrl: {
       type: String,
     },
+    referenceImageUrl: {
+      type: String,
+    },
     inferenceTimeMs: {
       type: Number,
     },
@@ -125,19 +129,11 @@ const PredictionSchema = new Schema<IPrediction>(
 );
 
 // ==================== INDEXES ====================
-PredictionSchema.index({ predictionId: 1 });
+// predictionId unique index is automatically created by schema
 PredictionSchema.index({ patient: 1 });
 PredictionSchema.index({ requestedBy: 1 });
 PredictionSchema.index({ decision: 1 });
 PredictionSchema.index({ status: 1 });
 PredictionSchema.index({ createdAt: -1 });
-
-// ==================== STATICS ====================
-PredictionSchema.statics.generatePredictionId = async function (): Promise<string> {
-  const year = new Date().getFullYear();
-  const count = await this.countDocuments();
-  const nextId = (count + 1).toString().padStart(4, '0');
-  return `PRED-${year}-${nextId}`;
-};
 
 export default mongoose.model<IPrediction>('Prediction', PredictionSchema);

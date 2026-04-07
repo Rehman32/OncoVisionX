@@ -74,6 +74,7 @@ app.get('/api', (_req: Request, res: Response) => {
 
 // Static file serving for saliency map images
 app.use('/static/saliency', express.static(path.join(__dirname, '..', 'uploads', 'saliency')));
+app.use('/static/uploads', express.static(path.join(__dirname, '..', 'uploads', 'dermoscopy')));
 
 // API ROUTES 
 app.use('/api/auth', authRoutes);
