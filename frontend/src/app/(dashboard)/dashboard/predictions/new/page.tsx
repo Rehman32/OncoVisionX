@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, use } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Loader2, Save, Dna } from 'lucide-react';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCreatePrediction } from '@/hooks/usePredictions';
@@ -17,33 +17,26 @@ export default function NewPredictionPage() {
   const createPrediction = useCreatePrediction();
   const { data: patientData, isLoading: isPatientLoading } = usePatient(patientId || '');
 
-  // UPDATED: State with separate RNA-Seq and Mutation
-  const [files, setFiles] = useState({
-    pathologyImages: [] as string[],
-    radiologyScans: [] as string[],
-    clinicalData: '',
-    rnaSeqData: '',      // NEW
-    mutationData: ''     // NEW
-  });
+  // Track the single image
+  const [dermoscopyImage, setDermoscopyImage] = useState<File | null>(null);
 
   const handleSubmit = async () => {
-    if (!patientId) return;
+    if (!patientId || !patientData?.data || !dermoscopyImage) return;
 
     try {
-      await createPrediction.mutateAsync({
-        patientId,
-        files: {
-          pathologyImages: files.pathologyImages.length ? files.pathologyImages : undefined,
-          radiologyScans: files.radiologyScans.length ? files.radiologyScans : undefined,
-          clinicalData: files.clinicalData || undefined,
-          rnaSeqData: files.rnaSeqData || undefined,      // NEW
-          mutationData: files.mutationData || undefined   // NEW
-        }
+      // Create prediction asynchronously. This is a synchronous backend flow, 
+      // resolving when the inference actually completes.
+      const result = await createPrediction.mutateAsync({
+        patient: patientData.data,
+        file: dermoscopyImage
       });
       
-      router.push('/dashboard/predictions');
+      if (result && result._id) {
+        // Route smoothly immediately assuming backend resolves populated result.
+        router.push(`/dashboard/predictions/${result._id}`);
+      }
     } catch (err) {
-      // Handled by hook
+      // Handled globally by the hook wrapper via Sonner
     }
   };
 
@@ -64,178 +57,66 @@ export default function NewPredictionPage() {
 
   const patient = patientData?.data;
 
-  // Calculate total files uploaded
-  const totalFiles = 
-    files.pathologyImages.length + 
-    files.radiologyScans.length + 
-    (files.clinicalData ? 1 : 0) + 
-    (files.rnaSeqData ? 1 : 0) +     // NEW
-    (files.mutationData ? 1 : 0);    // NEW
-
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-10">
+    <div className="space-y-6 max-w-2xl mx-auto pb-10">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">New Prediction</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Triage Assessment</h1>
           <p className="text-muted-foreground">
-            Upload multi-modal data for {patient?.personalInfo.firstName} {patient?.personalInfo.lastName}
+            Generate CDSS analysis for {patient?.firstName} {patient?.lastName}
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Left Column: Imaging */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pathology (WSI)</CardTitle>
-              <CardDescription>Upload Whole Slide Images (.svs, .tiff, .ndpi)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUploadZone 
-                label="Pathology Slides"
-                category="pathology"
-                accept=".svs,.tiff,.ndpi,.jpg,.jpeg,.png"
-                multiple
-                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, pathologyImages: [...prev.pathologyImages, ...ids] }))}
-              />
-            </CardContent>
-          </Card>
+      <div className="space-y-6">
+        {/* Core Dermoscopy Processing Input Zone */}
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle>Dermoscopy Image</CardTitle>
+            <CardDescription>Upload a single high-resolution macroscopic/dermoscopy lesion image (.jpg, .png, .bmp)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FileUploadZone 
+              label="Lesion Image"
+              accept=".jpg,.jpeg,.png,.bmp"
+              onFileSelect={(file) => setDermoscopyImage(file)}
+            />
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Radiology (CT/MRI)</CardTitle>
-              <CardDescription>Upload DICOM series or archives (.dcm, .zip)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUploadZone 
-                label="Radiology Scans"
-                category="radiology"
-                accept=".dcm,.zip,.jpg,.png"
-                multiple
-                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, radiologyScans: [...prev.radiologyScans, ...ids] }))}
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Data */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Clinical Data</CardTitle>
-              <CardDescription>Upload structured clinical records (.csv, .json)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUploadZone 
-                label="Clinical Records"
-                category="clinical"
-                accept=".csv,.json,.txt"
-                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, clinicalData: ids[0] }))}
-              />
-            </CardContent>
-          </Card>
-
-          {/* NEW: Separate Genomics Upload Zones */}
-          <Card className="border-purple-200 dark:border-purple-800">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Dna className="h-5 w-5 text-purple-600" />
-                <CardTitle>RNA Sequencing</CardTitle>
-              </div>
-              <CardDescription>Upload RNA-Seq data (.fastq, .csv, .txt)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUploadZone 
-                label="RNA-Seq Data"
-                category="genomic"
-                accept=".fastq,.csv,.txt,.fq"
-                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, rnaSeqData: ids[0] }))}
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="border-orange-200 dark:border-orange-800">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Dna className="h-5 w-5 text-orange-600" />
-                <CardTitle>Mutation Data</CardTitle>
-              </div>
-              <CardDescription>Upload variant/mutation calls (.vcf, .csv)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUploadZone 
-                label="Mutation Variants"
-                category="genomic"
-                accept=".vcf,.csv,.txt"
-                onUploadComplete={(ids) => setFiles(prev => ({ ...prev, mutationData: ids[0] }))}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Submit Action */}
-          <Card className="bg-muted/50 border-dashed">
-            <CardContent className="pt-6">
-              <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Pathology:</span>
-                    <span className="font-semibold">{files.pathologyImages.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Radiology:</span>
-                    <span className="font-semibold">{files.radiologyScans.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Clinical:</span>
-                    <span className="font-semibold">{files.clinicalData ? 1 : 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>RNA-Seq:</span>
-                    <span className="font-semibold text-purple-600">{files.rnaSeqData ? 1 : 0}</span>
-                  </div>
-                  <div className="flex justify-between col-span-2">
-                    <span>Mutations:</span>
-                    <span className="font-semibold text-orange-600">{files.mutationData ? 1 : 0}</span>
-                  </div>
-                </div>
-                
-                <div className="h-px bg-border" />
-                
-                <div className="flex justify-between font-semibold">
-                  <span>Total Files:</span>
-                  <span>{totalFiles}</span>
-                </div>
-
-                <Button 
-                  size="lg" 
-                  className="w-full" 
-                  onClick={handleSubmit}
-                  disabled={createPrediction.isPending || totalFiles === 0}
-                >
-                  {createPrediction.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing Request...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Generate Prediction
-                    </>
-                  )}
-                </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  By submitting, you confirm that all data is anonymized according to HIPAA/GDPR regulations.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Submit Action */}
+        <Card className="bg-muted/50 border-dashed">
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4">
+              
+              <Button 
+                size="lg" 
+                className="w-full" 
+                onClick={handleSubmit}
+                disabled={createPrediction.isPending || !dermoscopyImage}
+              >
+                {createPrediction.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing Request (CDSS Inference)...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Determine Route (Inference)
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                By submitting, image will securely be routed to synchronous inference models.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

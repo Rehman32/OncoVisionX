@@ -5,21 +5,22 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Download,
-  FileText,
   Clock,
   User,
+  ShieldAlert,
   Loader2,
+  FileImage,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrediction } from "@/hooks/usePredictions";
 import { format } from "date-fns";
-import TNMStageDisplay from "@/components/predictions/TNMStageDisplay";
-import SurvivalChart from "@/components/predictions/SurvivalChart";
-import FeatureImportanceChart from "@/components/predictions/FeatureImportanceChart";
+import { apiClient } from "@/lib/api/client";
 
 export default function PredictionDetailPage({
   params,
@@ -33,10 +34,10 @@ export default function PredictionDetailPage({
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-24 w-full" />
         <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-96 w-full" />
-          <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
         </div>
       </div>
     );
@@ -48,7 +49,7 @@ export default function PredictionDetailPage({
         <div className="text-center">
           <h3 className="text-lg font-semibold">Prediction not found</h3>
           <p className="text-sm text-muted-foreground mt-2">
-            The prediction you're looking for doesn't exist.
+            The prediction you're looking for doesn't exist or failed to load.
           </p>
           <Button
             className="mt-4"
@@ -62,43 +63,78 @@ export default function PredictionDetailPage({
   }
 
   const prediction = data.data;
-  const patient =
-    typeof prediction.patient === "object" ? prediction.patient : null;
-  const requestedBy =
-    typeof prediction.requestedBy === "object" ? prediction.requestedBy : null;
+  const patient = typeof prediction.patient === "object" ? prediction.patient : null;
+  const requestedBy = typeof prediction.requestedBy === "object" ? prediction.requestedBy : null;
+
+  // Resolve API Base without the /api suffix to fetch static assets safely
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
+  // Hero Banner configurations based on decision
+  let heroConfig = {
+    colorClass: "bg-slate-100 text-slate-800 dark:bg-slate-900 border-slate-200",
+    icon: <ShieldAlert className="h-8 w-8" />,
+    title: "Unknown State",
+    description: "System could not determine an outcome.",
+  };
+
+  switch (prediction.decision) {
+    case "ACCEPT":
+      heroConfig = {
+        colorClass: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800",
+        icon: <CheckCircle2 className="h-8 w-8" />,
+        title: "ACCEPT (High Confidence)",
+        description: "The intelligent subsystem reached consensus. Diagnosis is confident.",
+      };
+      break;
+    case "DEFER_TO_DOCTOR":
+      heroConfig = {
+        colorClass: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
+        icon: <AlertTriangle className="h-8 w-8" />,
+        title: "DEFER TO DOCTOR",
+        description: "Model uncertain. Requires meticulous clinical review by a specialist.",
+      };
+      break;
+    case "REJECT_QUALITY":
+      heroConfig = {
+        colorClass: "bg-red-100 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+        icon: <XCircle className="h-8 w-8" />,
+        title: "REJECT (Unusable Quality)",
+        description: "The uploaded image lacks adequate macroscopic fidelity or contains extreme blur.",
+      };
+      break;
+    case "REJECT_OOD":
+      heroConfig = {
+        colorClass: "bg-red-100 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+        icon: <XCircle className="h-8 w-8" />,
+        title: "REJECT (Out Of Distribution)",
+        description: "Lesion does not match known dataset clusters or is severely uncharacteristic.",
+      };
+      break;
+  }
+
+  // Derive stable reference URL even for older documents that only have imageFileId
+  const getReferenceUrl = () => {
+    if (prediction.referenceImageUrl) return `${backendUrl}${prediction.referenceImageUrl}`;
+    if (prediction.imageFileId) {
+      const filename = String(prediction.imageFileId).replace(/\\/g, '/').split('/').pop();
+      return `${backendUrl}/static/uploads/${filename}`;
+    }
+    return null;
+  };
+  const refUrl = getReferenceUrl();
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Header Utilities */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Prediction Report
-              </h1>
-              <Badge variant="outline" className="font-mono">
-                {prediction.predictionId}
-              </Badge>
-              {prediction.status === "completed" && (
-                <Badge className="bg-green-500">Completed</Badge>
-              )}
-              {prediction.status === "processing" && (
-                <Badge variant="secondary" className="animate-pulse">
-                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                  Processing
-                </Badge>
-              )}
-              {prediction.status === "failed" && (
-                <Badge variant="destructive">Failed</Badge>
-              )}
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Triage Report</h1>
             <p className="text-muted-foreground">
-              AI-generated staging analysis for{" "}
-              {patient?.personalInfo.firstName} {patient?.personalInfo.lastName}
+              CDSS Result for {patient?.firstName} {patient?.lastName} • <span className="font-mono">{prediction.predictionId}</span>
             </p>
           </div>
         </div>
@@ -108,7 +144,20 @@ export default function PredictionDetailPage({
         </Button>
       </div>
 
-      {/* Metadata */}
+      {/* Hero Decision Banner */}
+      <Card className={`border-2 ${heroConfig.colorClass}`}>
+        <CardContent className="pt-6 pb-6 flex items-center gap-6">
+          <div className="flex-shrink-0">
+            {heroConfig.icon}
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">{heroConfig.title}</h2>
+            <p className="opacity-90">{heroConfig.description}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Administrative Details */}
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -117,8 +166,7 @@ export default function PredictionDetailPage({
               <div>
                 <p className="text-muted-foreground">Patient</p>
                 <p className="font-medium">
-                  {patient?.personalInfo.firstName}{" "}
-                  {patient?.personalInfo.lastName}
+                  {patient?.firstName} {patient?.lastName}
                 </p>
               </div>
             </div>
@@ -134,222 +182,104 @@ export default function PredictionDetailPage({
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-muted-foreground">Created</p>
+                <p className="text-muted-foreground">Processed</p>
                 <p className="font-medium">
                   {format(new Date(prediction.createdAt), "MMM dd, yyyy HH:mm")}
                 </p>
               </div>
             </div>
-            {prediction.processingTime && (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-muted-foreground">Processing Time</p>
-                  <p className="font-medium">
-                    {prediction.processingTime.toFixed(1)}s
-                  </p>
-                </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-muted-foreground">Inference Latency</p>
+                <p className="font-medium">
+                  {prediction.inferenceTimeMs ? (prediction.inferenceTimeMs / 1000).toFixed(2) + "s" : "N/A"}
+                </p>
               </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Processing State */}
-      {prediction.status === "processing" && (
-        <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-center gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
-              <div>
-                <p className="font-semibold">Analysis in Progress</p>
-                <p className="text-sm text-muted-foreground">
-                  The AI model is processing multi-modal data. This typically
-                  takes 30-120 seconds.
-                </p>
+      {/* AI Metrics Grid */}
+      <div className="grid gap-6 md:grid-cols-3 flex-grow">
+        {/* Main Prediction Details */}
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle className="text-lg">Inference Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b">
+                <span className="text-muted-foreground">Primary Class</span>
+                <Badge variant="outline" className="font-mono text-xs font-semibold">{prediction.predictedClass?.toUpperCase() || 'UNKNOWN'}</Badge>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b">
+                <span className="text-muted-foreground">Confidence</span>
+                <span className="font-medium">{prediction.confidence != null ? (prediction.confidence * 100).toFixed(1) : 'N/A'}%</span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b">
+                <span className="text-muted-foreground">Conformal Coverage</span>
+                <span className="font-medium">{prediction.coverageGuarantee != null ? (prediction.coverageGuarantee * 100).toFixed(1) : 'N/A'}%</span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b">
+                <span className="text-muted-foreground">Entropy (Uncertainty)</span>
+                <span className="font-medium">{prediction.entropy != null ? prediction.entropy.toFixed(3) : 'N/A'}</span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b">
+                <span className="text-muted-foreground">OOD Similarity</span>
+                <span className="font-medium">{prediction.oodSimilarity != null ? (prediction.oodSimilarity * 100).toFixed(1) : 'N/A'}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Blur Variance</span>
+                <span className="font-medium">{prediction.blurVariance != null ? prediction.blurVariance.toFixed(1) : 'N/A'}</span>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Failed State */}
-      {prediction.status === "failed" && (
-        <Card className="border-destructive/50 bg-destructive/5">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="font-semibold text-destructive">
-                Prediction Failed
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {prediction.errorMessage ||
-                  "An error occurred during processing."}
-              </p>
+        {/* Saliency & Visuals */}
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <FileImage className="h-5 w-5" />
+              Grad-CAM Saliency Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium mb-2 opacity-80 text-center">Reference Input</p>
+                <div className="border border-muted-foreground/30 rounded-lg overflow-hidden bg-black aspect-square flex items-center justify-center relative">
+                  {refUrl ? (
+                    <img src={refUrl} alt="Original Lesion" className="w-full h-full object-contain bg-black rounded-lg" />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Image Unavailable</span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium mb-2 opacity-80 text-center">Class Activation Map (Focus Area)</p>
+                {prediction.saliencyMapUrl ? (
+                  <div className="border border-primary/20 rounded-lg overflow-hidden bg-black aspect-square relative group">
+                    <img
+                      src={`${backendUrl}${prediction.saliencyMapUrl}`}
+                      alt="Grad-CAM Saliency"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="border border-dashed rounded-lg flex items-center justify-center bg-muted/50 aspect-square">
+                    <span className="text-sm text-muted-foreground">Map Unavailable</span>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
-      )}
+      </div>
 
-      {/* Results (only if completed) */}
-      {prediction.status === "completed" && prediction.results && (
-        <>
-          {/* TNM Staging */}
-          <TNMStageDisplay tnmStaging={prediction.results.tnmStaging} />
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Survival Curve */}
-            {prediction.results.survivalPrediction && (
-              <SurvivalChart
-                survivalPrediction={prediction.results.survivalPrediction}
-              />
-            )}
-
-            {/* Feature Importance */}
-            {prediction.results.featureImportance && (
-              <FeatureImportanceChart
-                featureImportance={{
-                  pathology: prediction.results.featureImportance.pathology,
-                  radiology: prediction.results.featureImportance.radiology,
-                  clinical: prediction.results.featureImportance.clinical,
-                  // NEW: Combine genomics or show separately
-                  genomic:
-                    (prediction.results.featureImportance.rnaSeq || 0) +
-                    (prediction.results.featureImportance.mutation || 0),
-                }}
-              />
-            )}
-          </div>
-
-          {/* Attention Maps (if available) */}
-          {prediction.results.attentionMaps && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Attention Maps</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {prediction.results.attentionMaps.pathologyMapUrl && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">
-                        Pathology Heatmap
-                      </p>
-                      <div className="border rounded-lg overflow-hidden">
-                        <img
-                          src={prediction.results.attentionMaps.pathologyMapUrl}
-                          alt="Pathology attention map"
-                          className="w-full"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {prediction.results.attentionMaps.radiologyMapUrl && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">
-                        Radiology Heatmap
-                      </p>
-                      <div className="border rounded-lg overflow-hidden">
-                        <img
-                          src={prediction.results.attentionMaps.radiologyMapUrl}
-                          alt="Radiology attention map"
-                          className="w-full"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
-
-      {/* Uploaded Files */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Uploaded Files</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            {prediction.uploadedFiles.pathologyImages &&
-              prediction.uploadedFiles.pathologyImages.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">
-                    Pathology Images (
-                    {prediction.uploadedFiles.pathologyImages.length})
-                  </p>
-                  <ul className="space-y-1 text-sm">
-                    {prediction.uploadedFiles.pathologyImages.map((file, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center gap-2 text-muted-foreground"
-                      >
-                        <FileText className="h-3 w-3" />
-                        {file.fileName}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-            {prediction.uploadedFiles.radiologyScans &&
-              prediction.uploadedFiles.radiologyScans.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">
-                    Radiology Scans (
-                    {prediction.uploadedFiles.radiologyScans.length})
-                  </p>
-                  <ul className="space-y-1 text-sm">
-                    {prediction.uploadedFiles.radiologyScans.map((file, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center gap-2 text-muted-foreground"
-                      >
-                        <FileText className="h-3 w-3" />
-                        {file.fileName}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-            {prediction.uploadedFiles.clinicalData && (
-              <div>
-                <p className="text-sm font-medium mb-2">Clinical Data</p>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-3 w-3" />
-                  {prediction.uploadedFiles.clinicalData.fileName}
-                </p>
-              </div>
-            )}
-
-            {/* NEW: RNA-Seq Data */}
-            {prediction.uploadedFiles.rnaSeqData && (
-              <div className="border-l-2 border-purple-500 pl-3">
-                <p className="text-sm font-medium mb-2 text-purple-600">
-                  RNA Sequencing Data
-                </p>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-3 w-3" />
-                  {prediction.uploadedFiles.rnaSeqData.fileName}
-                </p>
-              </div>
-            )}
-
-            {/* NEW: Mutation Data */}
-            {prediction.uploadedFiles.mutationData && (
-              <div className="border-l-2 border-orange-500 pl-3">
-                <p className="text-sm font-medium mb-2 text-orange-600">
-                  Mutation/Variant Data
-                </p>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-3 w-3" />
-                  {prediction.uploadedFiles.mutationData.fileName}
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
