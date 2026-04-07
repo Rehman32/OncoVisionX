@@ -41,6 +41,8 @@ export default function EditPatientPage({ params }: { params: Promise<{id : stri
     );
   }
 
+  const patient = data.data;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -54,13 +56,22 @@ export default function EditPatientPage({ params }: { params: Promise<{id : stri
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Edit Patient</h1>
           <p className="text-muted-foreground">
-            Update patient information for {data.data.personalInfo.firstName} {data.data.personalInfo.lastName}
+            Update patient information for {patient.firstName || ''} {patient.lastName || ''}
           </p>
         </div>
       </div>
 
       <PatientForm
-        defaultValues={data.data}
+        defaultValues={{
+          firstName: patient.firstName || '',
+          lastName: patient.lastName || '',
+          dateOfBirth: patient.dateOfBirth || '',
+          sex: patient.sex || 'unknown',
+          anatomicalSite: patient.anatomicalSite || 'unknown',
+          contactNumber: patient.contactNumber || '',
+          email: patient.email || '',
+          notes: patient.notes || '',
+        }}
         onSubmit={handleSubmit}
         isLoading={updatePatient.isPending}
       />

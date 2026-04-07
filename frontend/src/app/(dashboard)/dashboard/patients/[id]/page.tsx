@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Edit, FileText, Trash } from "lucide-react";
+import { ArrowLeft, Edit, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -62,15 +62,15 @@ export default function PatientDetailPage({
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">
-                {patient.personalInfo.firstName} {patient.personalInfo.lastName}
+                {patient.firstName || ''} {patient.lastName || ''}
               </h1>
               <Badge variant="outline" className="font-mono">
                 {patient.patientId}
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              {patient.age} years old • {patient.personalInfo.gender} • Added{" "}
-              {format(new Date(patient.createdAt), "MMM dd, yyyy")}
+              {patient.age ?? 'N/A'} years old • {patient.sex || 'unknown'} • Added{" "}
+              {patient.createdAt ? format(new Date(patient.createdAt), "MMM dd, yyyy") : 'N/A'}
             </p>
           </div>
         </div>
@@ -100,7 +100,7 @@ export default function PatientDetailPage({
         {/* Personal Information */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>Patient Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -109,8 +109,8 @@ export default function PatientDetailPage({
                   Full Name
                 </p>
                 <p className="text-base">
-                  {patient.personalInfo.firstName}{" "}
-                  {patient.personalInfo.lastName}
+                  {patient.firstName || ''}{" "}
+                  {patient.lastName || ''}
                 </p>
               </div>
               <div>
@@ -118,34 +118,33 @@ export default function PatientDetailPage({
                   Date of Birth
                 </p>
                 <p className="text-base">
-                  {format(
-                    new Date(patient.personalInfo.dateOfBirth),
-                    "MMMM dd, yyyy"
-                  )}
+                  {patient.dateOfBirth
+                    ? format(new Date(patient.dateOfBirth), "MMMM dd, yyyy")
+                    : "Not recorded"}
                 </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Gender
+                  Sex
                 </p>
                 <p className="text-base capitalize">
-                  {patient.personalInfo.gender}
+                  {patient.sex || 'unknown'}
                 </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Blood Type
+                  Anatomical Site
                 </p>
-                <p className="text-base">
-                  {patient.personalInfo.bloodType || "Not specified"}
-                </p>
+                <Badge variant="outline" className="capitalize mt-1">
+                  {patient.anatomicalSite || 'unknown'}
+                </Badge>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
                   Contact Number
                 </p>
                 <p className="text-base">
-                  {patient.personalInfo.contactNumber || "Not provided"}
+                  {patient.contactNumber || "Not provided"}
                 </p>
               </div>
               <div>
@@ -153,28 +152,20 @@ export default function PatientDetailPage({
                   Email
                 </p>
                 <p className="text-base">
-                  {patient.personalInfo.email || "Not provided"}
+                  {patient.email || "Not provided"}
                 </p>
               </div>
             </div>
 
-            {patient.personalInfo.address && (
+            {patient.notes && (
               <>
                 <Separator />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Address
+                    Clinical Notes
                   </p>
-                  <p className="text-base">
-                    {[
-                      patient.personalInfo.address.street,
-                      patient.personalInfo.address.city,
-                      patient.personalInfo.address.state,
-                      patient.personalInfo.address.zipCode,
-                      patient.personalInfo.address.country,
-                    ]
-                      .filter(Boolean)
-                      .join(", ") || "Not provided"}
+                  <p className="text-base text-sm">
+                    {patient.notes}
                   </p>
                 </div>
               </>
@@ -190,188 +181,46 @@ export default function PatientDetailPage({
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Age</p>
-              <p className="text-2xl font-bold">{patient.age} years</p>
+              <p className="text-2xl font-bold">{patient.age ?? 'N/A'} years</p>
             </div>
-            {patient.bmi && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">BMI</p>
-                <p className="text-2xl font-bold">{patient.bmi}</p>
-              </div>
-            )}
-            {patient.medicalInfo?.smokingStatus && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Smoking Status
-                </p>
-                <Badge
-                  variant={
-                    patient.medicalInfo.smokingStatus === "current"
-                      ? "destructive"
-                      : patient.medicalInfo.smokingStatus === "former"
-                      ? "secondary"
-                      : "outline"
-                  }
-                  className="mt-1"
-                >
-                  {patient.medicalInfo.smokingStatus}
-                </Badge>
-              </div>
-            )}
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Sex
+              </p>
+              <Badge variant="secondary" className="mt-1 capitalize">
+                {patient.sex || 'unknown'}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Lesion Site
+              </p>
+              <Badge variant="outline" className="mt-1 capitalize">
+                {patient.anatomicalSite || 'unknown'}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Assigned Doctor */}
       <Card>
         <CardHeader>
           <CardTitle>Assigned Doctor</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Consultant
-              </p>
-              <p className="text-base">
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">
+              Consultant
+            </p>
+            <p className="text-base">
               {doctor
                 ? `Dr ${doctor.firstName} ${doctor.lastName}`
                 : "Not assigned"}
             </p>
-            </div>
-            
-            
-          </CardContent>
-        
-      </Card>
-      {/* Medical Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Medical Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Height
-              </p>
-              <p className="text-base">
-                {patient.medicalInfo?.height
-                  ? `${patient.medicalInfo.height} cm`
-                  : "Not recorded"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Weight
-              </p>
-              <p className="text-base">
-                {patient.medicalInfo?.weight
-                  ? `${patient.medicalInfo.weight} kg`
-                  : "Not recorded"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Pack Years
-              </p>
-              <p className="text-base">
-                {patient.medicalInfo?.smokingPackYears || "N/A"}
-              </p>
-            </div>
           </div>
-
-          {patient.medicalInfo?.comorbidities &&
-            patient.medicalInfo.comorbidities.length > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Comorbidities
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {patient.medicalInfo.comorbidities.map((condition, i) => (
-                      <Badge key={i} variant="secondary">
-                        {condition}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-          {patient.medicalInfo?.allergies &&
-            patient.medicalInfo.allergies.length > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Allergies
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {patient.medicalInfo.allergies.map((allergy, i) => (
-                      <Badge key={i} variant="destructive">
-                        {allergy}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-          {patient.medicalInfo?.currentMedications &&
-            patient.medicalInfo.currentMedications.length > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Current Medications
-                  </p>
-                  <ul className="list-disc list-inside space-y-1">
-                    {patient.medicalInfo.currentMedications.map((med, i) => (
-                      <li key={i} className="text-sm">
-                        {med}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </>
-            )}
         </CardContent>
       </Card>
-
-      {/* Emergency Contact */}
-      {patient.emergencyContact && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Emergency Contact</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Name
-                </p>
-                <p className="text-base">
-                  {patient.emergencyContact.name || "Not provided"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Relationship
-                </p>
-                <p className="text-base">
-                  {patient.emergencyContact.relationship || "Not provided"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Phone Number
-                </p>
-                <p className="text-base">
-                  {patient.emergencyContact.phoneNumber || "Not provided"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
