@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,26 +16,23 @@ import {
   User, 
   Settings, 
   LogOut, 
-  Bell, 
   HelpCircle, 
-  Search, 
   ChevronDown,
   Shield,
-  CreditCard,
   Moon,
   Sun,
   Laptop,
-  Sparkles,
   Activity,
   Clock
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 
 export default function Header() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const [notificationCount] = useState(3);
+  const { setTheme, theme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -89,137 +85,16 @@ export default function Header() {
 
         {/* Right Section - Actions */}
         <div className="flex items-center gap-2">
-          {/* Search with shortcut hint */}
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="h-10 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400 gap-2 hidden md:flex"
-          >
-            <Search className="h-4.5 w-4.5" />
-            <span className="text-sm">Search</span>
-            <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-1.5 font-mono text-[10px] font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-              ⌘K
-            </kbd>
-          </Button>
-
-          {/* Mobile search */}
+          {/* Help — Direct link, no dropdown */}
           <Button 
             variant="ghost" 
             size="icon"
-            className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400 md:hidden"
+            className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400"
+            onClick={() => window.open('/documentation.pdf', '_blank')}
           >
-            <Search className="h-5 w-5" />
-            <span className="sr-only">Search</span>
+            <HelpCircle className="h-5 w-5" />
+            <span className="sr-only">Help</span>
           </Button>
-
-          {/* Help Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400"
-              >
-                <HelpCircle className="h-5 w-5" />
-                <span className="sr-only">Help</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-2">
-              <DropdownMenuItem className="rounded-lg cursor-pointer py-2.5">
-                <HelpCircle className="mr-3 h-4 w-4 text-slate-500" />
-                <span className="text-sm">Documentation</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-lg cursor-pointer py-2.5">
-                <Sparkles className="mr-3 h-4 w-4 text-slate-500" />
-                <span className="text-sm">What's New</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Notifications with enhanced dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-  <Button
-    variant="ghost"
-    size="icon"
-    className="relative h-10 w-10 rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900"
-  >
-    <Bell className="h-5 w-5" />
-
-    {notificationCount > 0 && (
-  <span className="
-    absolute -top-1 -right-1
-    flex h-[18px] w-[18px] items-center justify-center
-    rounded-full
-    bg-red-600/90
-    text-[10px] font-semibold text-white
-    ring-2 ring-white dark:ring-slate-950
-  ">
-    {notificationCount}
-  </span>
-)}
-
-
-    <span className="sr-only">Notifications</span>
-  </Button>
-</DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" className="w-80 p-0">
-              <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
-                <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-50">
-                  Notifications
-                </h3>
-                <Badge variant="secondary" className="text-xs">
-                  {notificationCount} new
-                </Badge>
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                <div className="p-2 space-y-1">
-                  <div className="p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/50 cursor-pointer">
-                    <div className="flex gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                        <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-50">
-                          New prediction completed
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          Patient P-2025-045 staging results ready
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                          2 hours ago
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/50 cursor-pointer">
-                    <div className="flex gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                        <Shield className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-50">
-                          Security update available
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          Review and approve security patches
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                          5 hours ago
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="border-t border-slate-200 dark:border-slate-800 p-2">
-                <Button variant="ghost" className="w-full justify-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg">
-                  View all notifications
-                </Button>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           {/* Divider */}
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-2"></div>
@@ -303,17 +178,6 @@ export default function Header() {
                 </div>
               </DropdownMenuItem>
 
-              <DropdownMenuItem 
-                onClick={() => router.push('/dashboard/billing')}
-                className="rounded-lg cursor-pointer py-2.5 group"
-              >
-                <CreditCard className="mr-3 h-4 w-4 text-slate-500 group-hover:text-blue-600 transition-colors" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Billing</p>
-                  <p className="text-xs text-slate-500">Plans & payments</p>
-                </div>
-              </DropdownMenuItem>
-
               {/* Theme Submenu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -327,17 +191,20 @@ export default function Header() {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="left" className="w-48 p-1">
-                  <DropdownMenuItem className="rounded-md py-2">
+                  <DropdownMenuItem className="rounded-md py-2" onClick={() => setTheme('light')}>
                     <Sun className="mr-2 h-4 w-4" />
                     Light
+                    {theme === 'light' && <span className="ml-auto text-blue-600">✓</span>}
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="rounded-md py-2">
+                  <DropdownMenuItem className="rounded-md py-2" onClick={() => setTheme('dark')}>
                     <Moon className="mr-2 h-4 w-4" />
                     Dark
+                    {theme === 'dark' && <span className="ml-auto text-blue-600">✓</span>}
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="rounded-md py-2">
+                  <DropdownMenuItem className="rounded-md py-2" onClick={() => setTheme('system')}>
                     <Laptop className="mr-2 h-4 w-4" />
                     System
+                    {theme === 'system' && <span className="ml-auto text-blue-600">✓</span>}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

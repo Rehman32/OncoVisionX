@@ -3,7 +3,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'doctor' | 'researcher';
+  role: 'admin' | 'doctor';
   phoneNumber?: string;
   licenseNumber?: string;
   institution?: string;
@@ -30,7 +30,7 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  role?: 'doctor' | 'researcher';
+  role?: 'doctor';
   phoneNumber?: string;
   licenseNumber?: string;
   institution?: string;

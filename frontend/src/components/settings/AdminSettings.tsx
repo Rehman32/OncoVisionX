@@ -17,7 +17,7 @@ export default function AdminSettings() {
 
   useEffect(() => {
     if (settings?.roleSpecific?.systemMonitoring) {
-      setLocalSettings({ ...settings.roleSpecific.systemMonitoring });
+      setLocalSettings({ ...settings?.roleSpecific?.systemMonitoring });
     }
   }, [settings]);
 
@@ -145,7 +145,7 @@ export default function AdminSettings() {
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => setLocalSettings({ ...settings.roleSpecific?.systemMonitoring })}>
+        <Button variant="outline" onClick={() => setLocalSettings({ ...settings?.roleSpecific?.systemMonitoring })}>
           Cancel
         </Button>
         <Button 

@@ -23,7 +23,7 @@ export default function DisplaySettings() {
 
   useEffect(() => {
     if (settings?.display) {
-      setLocalSettings({ ...settings.display });
+      setLocalSettings({ ...settings?.display });
     }
   }, [settings]);
 
@@ -37,7 +37,7 @@ export default function DisplaySettings() {
   const handleSave = () => {
     if (localSettings) {
       // Update theme in UI
-      if (localSettings.theme !== settings.display.theme) {
+      if (localSettings.theme !== settings?.display?.theme) {
         setTheme(localSettings.theme);
       }
       updateSettings.mutate({ display: localSettings });
@@ -154,7 +154,7 @@ export default function DisplaySettings() {
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => setLocalSettings({ ...settings.display })}>
+        <Button variant="outline" onClick={() => setLocalSettings({ ...settings?.display })}>
           Cancel
         </Button>
         <Button 

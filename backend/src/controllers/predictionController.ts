@@ -22,7 +22,7 @@ function ensureUploadDir(): void {
 /**
  * @route   POST /api/predictions
  * @desc    Create a new skin cancer triage prediction
- * @access  Admin, Doctor
+ * @access  Doctor only
  * 
  * Accepts multipart/form-data with:
  *   - image: dermoscopy image file
@@ -32,6 +32,11 @@ export const createPrediction = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction) => {
     const { patientId } = req.body;
     const file = req.file;
+
+    // Only doctors can trigger AI predictions
+    if (req.user!.role !== 'doctor') {
+      throw new BadRequestError('Only doctors can initiate triage predictions');
+    }
 
     // Validate inputs
     if (!file) {

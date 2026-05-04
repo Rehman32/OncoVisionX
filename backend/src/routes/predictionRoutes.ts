@@ -17,7 +17,7 @@ router.use(protect);
 // Create prediction — accepts multipart/form-data with dermoscopy image
 router.post(
   '/',
-  authorize('admin', 'doctor'),
+  authorize('doctor'),
   upload.single('image'),
   createPrediction,
   auditLogger('CREATE_PREDICTION', 'prediction')
@@ -26,14 +26,14 @@ router.post(
 // List predictions
 router.get(
   '/',
-  authorize('admin', 'doctor', 'researcher'),
+  authorize('admin', 'doctor'),
   getPredictions
 );
 
 // Get single prediction
 router.get(
   '/:id',
-  authorize('admin', 'doctor', 'researcher'),
+  authorize('admin', 'doctor'),
   getPredictionById
 );
 

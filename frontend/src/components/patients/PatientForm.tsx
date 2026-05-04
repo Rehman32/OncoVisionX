@@ -18,13 +18,20 @@ import { Separator } from '@/components/ui/separator';
 import { patientFormSchema, PatientFormData, HAM10000_SITES } from '@/lib/validations/patient';
 import { Loader2 } from 'lucide-react';
 
+interface DoctorOption {
+  _id: string;
+  firstName: string;
+  lastName: string;
+}
+
 interface PatientFormProps {
   defaultValues?: Partial<PatientFormData>;
   onSubmit: (data: PatientFormData) => void;
   isLoading?: boolean;
+  doctors?: DoctorOption[];
 }
 
-export default function PatientForm({ defaultValues, onSubmit, isLoading }: PatientFormProps) {
+export default function PatientForm({ defaultValues, onSubmit, isLoading, doctors }: PatientFormProps) {
   const {
     register,
     handleSubmit,
@@ -141,6 +148,33 @@ export default function PatientForm({ defaultValues, onSubmit, isLoading }: Pati
           </div>
 
           <Separator />
+
+          {/* Assigned Doctor */}
+          {doctors && doctors.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="assignedDoctor">Assigned Doctor *</Label>
+              <Select
+                defaultValue={watch('assignedDoctor') || undefined}
+                onValueChange={(value) => setValue('assignedDoctor', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a doctor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {doctors.map((doc) => (
+                    <SelectItem key={doc._id} value={doc._id}>
+                      Dr. {doc.firstName} {doc.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.assignedDoctor && (
+                <p className="text-sm text-destructive">
+                  {errors.assignedDoctor.message}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">

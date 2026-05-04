@@ -1,19 +1,29 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PatientForm from '@/components/patients/PatientForm';
 import { useCreatePatient } from '@/hooks/usePatients';
+import { useDoctors } from '@/hooks/useDoctors';
 import { PatientFormData } from '@/lib/validations/patient';
+import { useAuthStore } from '@/store/authStore';
 
 export default function NewPatientPage() {
   const router = useRouter();
   const createPatient = useCreatePatient();
+  const { data: doctorsData, isLoading: doctorsLoading } = useDoctors();
+  const { user } = useAuthStore();
 
   const handleSubmit = async (data: PatientFormData) => {
+    // If user is a doctor and no assignedDoctor selected, auto-assign self
+    const payload = {
+      ...data,
+      assignedDoctor: data.assignedDoctor || (user?.role === 'doctor' ? user._id : undefined),
+    };
+
     try {
-      await createPatient.mutateAsync(data as any);
+      await createPatient.mutateAsync(payload as any);
       router.push('/dashboard/patients');
     } catch (error) {
       // Error already handled by mutation
@@ -38,10 +48,17 @@ export default function NewPatientPage() {
         </div>
       </div>
 
-      <PatientForm
-        onSubmit={handleSubmit}
-        isLoading={createPatient.isPending}
-      />
+      {doctorsLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      ) : (
+        <PatientForm
+          onSubmit={handleSubmit}
+          isLoading={createPatient.isPending}
+          doctors={doctorsData?.data || []}
+        />
+      )}
     </div>
   );
 }

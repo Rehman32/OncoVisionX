@@ -27,7 +27,7 @@ export default function DoctorDashboardPage() {
     );
   }
 
-  const stats = statsData?.data;
+  const stats = (statsData as any)?.data;
 
   return (
     <div className="space-y-6">
@@ -153,12 +153,12 @@ export default function DoctorDashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {activityData?.data?.length === 0 ? (
+              {(activityData as any)?.data?.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
                   No recent activity
                 </p>
               ) : (
-                activityData?.data?.map((activity: any) => (
+                (activityData as any)?.data?.map((activity: any) => (
                   <div
                     key={activity.id}
                     className="flex items-start gap-4 border-b pb-4 last:border-0 cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"

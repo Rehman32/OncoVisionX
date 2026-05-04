@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const stats = statsData?.data;
+  const stats = (statsData as any)?.data;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
@@ -155,12 +155,12 @@ export default function AdminDashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {activityData?.data?.length === 0 ? (
+              {(activityData as any)?.data?.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
                   No recent activity
                 </p>
               ) : (
-                activityData?.data?.map((activity: any) => {
+                (activityData as any)?.data?.map((activity: any) => {
                   const isPatient = activity.type === 'patient_registered';
                   return (
                     <div

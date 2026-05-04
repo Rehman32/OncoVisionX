@@ -47,13 +47,12 @@ export default function UserManagementPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'doctor' | 'researcher'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'doctor'>('all');
   const handleRoleFilterChange = (value: string) => {
   if (
     value === 'all' ||
     value === 'admin' ||
-    value === 'doctor' ||
-    value === 'researcher'
+    value === 'doctor'
   ) {
     setRoleFilter(value);
   }
@@ -173,7 +172,6 @@ export default function UserManagementPage() {
         <SelectContent>
           <SelectItem value="admin">Admin</SelectItem>
           <SelectItem value="doctor">Doctor</SelectItem>
-          <SelectItem value="researcher">Researcher</SelectItem>
         </SelectContent>
       </Select>
     )}
@@ -242,14 +240,6 @@ export default function UserManagementPage() {
             <div className="text-2xl font-bold">{stats.doctor || 0}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Researchers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.researcher || 0}</div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Filters */}
@@ -272,7 +262,6 @@ export default function UserManagementPage() {
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="doctor">Doctor</SelectItem>
-            <SelectItem value="researcher">Researcher</SelectItem>
           </SelectContent>
         </Select>
       </div>

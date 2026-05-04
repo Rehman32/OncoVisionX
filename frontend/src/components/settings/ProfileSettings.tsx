@@ -21,7 +21,6 @@ const profileSchema = z.object({
   phoneNumber: z.string().optional(),
   institution: z.string().optional(),
   department: z.string().optional(),
-  bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -46,7 +45,6 @@ export default function ProfileSettings() {
       phoneNumber: user?.phoneNumber || '',
       institution: user?.institution || '',
       department: user?.department || '',
-      bio: user?.bio || '',
     },
   });
 
@@ -59,7 +57,6 @@ export default function ProfileSettings() {
         phoneNumber: user.phoneNumber || '',
         institution: user.institution || '',
         department: user.department || '',
-        bio: user.bio || '',
       });
     }
   }, [user, reset]);
@@ -195,20 +192,7 @@ export default function ProfileSettings() {
               />
             </div>
 
-            {/* Bio */}
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <textarea
-                id="bio"
-                placeholder="Tell us about yourself..."
-                className="w-full min-h-24 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-600 disabled:bg-slate-50 dark:disabled:bg-slate-900/50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                {...register('bio')}
-                disabled={isSaving}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {watch('bio')?.length || 0}/500 characters
-              </p>
-            </div>
+
 
             {/* Save Button */}
             <Button

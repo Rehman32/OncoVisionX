@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Mail, Lock, User, Building2, Briefcase, ArrowRight } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Building2, Briefcase, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,8 @@ export default function RegisterForm() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -147,12 +149,20 @@ export default function RegisterForm() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 disabled={isLoading}
-                className="pl-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                className="pl-10 pr-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 {...register('password')}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {errors.password && (
               <p className="text-xs text-destructive animate-in slide-in-from-top-1">
@@ -169,12 +179,20 @@ export default function RegisterForm() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
                 id="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 disabled={isLoading}
-                className="pl-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                className="pl-10 pr-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 {...register('confirmPassword')}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {errors.confirmPassword && (
               <p className="text-xs text-destructive animate-in slide-in-from-top-1">
@@ -191,7 +209,7 @@ export default function RegisterForm() {
           </Label>
           <Select
             defaultValue="doctor"
-            onValueChange={(value: 'doctor' | 'researcher') => setValue('role', value)}
+            onValueChange={(value: 'doctor') => setValue('role', value)}
           >
             <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20">
               <SelectValue placeholder="Select your role" />
@@ -201,12 +219,6 @@ export default function RegisterForm() {
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4" />
                   <span>Doctor / Clinician</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="researcher" className="cursor-pointer">
-                <div className="flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" />
-                  <span>Researcher</span>
                 </div>
               </SelectItem>
             </SelectContent>

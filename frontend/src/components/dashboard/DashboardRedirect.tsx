@@ -19,7 +19,6 @@ export default function DashboardRedirect() {
     const dashboardMap: Record<string, string> = {
       admin: '/dashboard/admin',
       doctor: '/dashboard/doctor',
-      researcher: '/dashboard/researcher',
     };
 
     const targetDashboard = dashboardMap[user.role] || '/dashboard/admin';

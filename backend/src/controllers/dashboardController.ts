@@ -7,7 +7,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 /**
  * @route   GET /api/dashboard/stats
  * @desc    Get role-specific dashboard statistics
- * @access  Admin, Doctor, Researcher
+ * @access  Admin, Doctor
  */
 export const getDashboardStats = asyncHandler(
   async (req: Request, res: Response) => {
@@ -89,53 +89,6 @@ export const getDashboardStats = asyncHandler(
           rejectOod: decisions['REJECT_OOD'] || 0,
         },
       };
-    } else if (role === 'researcher') {
-      // Researcher sees aggregated, de-identified stats
-      const [
-        totalPredictions,
-        totalPatients,
-        decisionCounts,
-        siteCounts,
-      ] = await Promise.all([
-        Prediction.countDocuments({ status: 'completed' }),
-        Patient.countDocuments({ isActive: true }),
-        Prediction.aggregate([
-          { $match: { status: 'completed' } },
-          { $group: { _id: '$decision', count: { $sum: 1 } } },
-        ]),
-        Patient.aggregate([
-          { $match: { isActive: true } },
-          { $group: { _id: '$anatomicalSite', count: { $sum: 1 } } },
-        ]),
-      ]);
-
-      const decisions = decisionCounts.reduce(
-        (acc: any, item: any) => {
-          acc[item._id] = item.count;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
-
-      const sites = siteCounts.reduce(
-        (acc: any, item: any) => {
-          acc[item._id] = item.count;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
-
-      stats = {
-        totalPredictions,
-        totalPatients,
-        decisionBreakdown: {
-          accept: decisions['ACCEPT'] || 0,
-          deferToDoctor: decisions['DEFER_TO_DOCTOR'] || 0,
-          rejectQuality: decisions['REJECT_QUALITY'] || 0,
-          rejectOod: decisions['REJECT_OOD'] || 0,
-        },
-        anatomicalSiteDistribution: sites,
-      };
     }
 
     res.status(200).json({
@@ -148,7 +101,7 @@ export const getDashboardStats = asyncHandler(
 /**
  * @route   GET /api/dashboard/activity
  * @desc    Get recent activity feed
- * @access  Admin, Doctor, Researcher
+ * @access  Admin, Doctor
  */
 export const getRecentActivity = asyncHandler(
   async (req: Request, res: Response) => {

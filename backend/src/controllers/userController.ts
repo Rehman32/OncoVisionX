@@ -122,7 +122,7 @@ export const createUser = async (
       throw new BadRequestError('Email, first name, last name, and role are required');
     }
 
-    if (!['admin', 'doctor', 'researcher'].includes(role)) {
+    if (!['admin', 'doctor'].includes(role)) {
       throw new BadRequestError('Invalid role');
     }
 
@@ -347,6 +347,31 @@ export const resetUserPassword = async (
     res.json({
       success: true,
       message: 'Password reset successfully. Email sent to user.'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc    Get list of doctors (for dropdowns)
+ * @route   GET /api/users/doctors
+ * @access  Private (any authenticated user)
+ */
+export const getDoctors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const doctors = await User.find({ role: 'doctor', isActive: true })
+      .select('_id firstName lastName email')
+      .sort({ lastName: 1, firstName: 1 })
+      .lean();
+
+    res.json({
+      success: true,
+      data: doctors,
     });
   } catch (err) {
     next(err);

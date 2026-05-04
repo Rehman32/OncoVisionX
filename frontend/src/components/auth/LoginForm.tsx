@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Mail, Lock, ArrowRight, Shield, CheckCircle2 } from 'lucide-react';
+import { Loader2, Mail, Lock, ArrowRight, Shield, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ export default function LoginForm() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -110,12 +111,20 @@ export default function LoginForm() {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 z-10" />
             <Input
               id="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               disabled={isLoading}
-              className="pl-10 h-12 relative z-10 transition-all duration-200 focus:ring-2 focus:ring-primary/20 border-slate-200 dark:border-slate-800 focus:border-primary"
+              className="pl-10 pr-10 h-12 relative z-10 transition-all duration-200 focus:ring-2 focus:ring-primary/20 border-slate-200 dark:border-slate-800 focus:border-primary"
               {...register('password')}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground hover:text-foreground transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
           {errors.password && (
             <p className="text-xs text-destructive flex items-center gap-1 animate-in slide-in-from-top-1">

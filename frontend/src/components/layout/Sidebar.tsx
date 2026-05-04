@@ -8,24 +8,18 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  BarChart3,
   Settings,
   UserCog,
   ChevronRight,
-  Sparkles,
   Shield,
-  Zap,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { Button } from '@/components/ui/button';
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  roles?: ('admin' | 'doctor' | 'researcher')[];
-  badge?: string;
-  isNew?: boolean;
+  roles?: ('admin' | 'doctor')[];
 }
 
 const navItems: NavItem[] = [
@@ -44,14 +38,6 @@ const navItems: NavItem[] = [
     title: 'Predictions',
     href: '/dashboard/predictions',
     icon: FileText,
-    badge: '7',
-  },
-  {
-    title: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: BarChart3,
-    roles: ['admin', 'researcher'],
-    isNew: true,
   },
   {
     title: 'User Management',
@@ -99,7 +85,7 @@ export default function Sidebar() {
               OncoVisionX
             </span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wider uppercase mt-1.5 leading-none">
-              Medical AI Platform
+              Multimodal Skin Cancer CDSS
             </span>
           </div>
         </Link>
@@ -157,30 +143,14 @@ export default function Sidebar() {
                   <span className="truncate">{item.title}</span>
                 </div>
                 
-                {/* Badge, New tag, or Arrow */}
+                {/* Arrow */}
                 <div className="flex items-center gap-2">
-                  {item.isNew && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
-                      New
-                    </span>
-                  )}
-                  {item.badge ? (
-                    <span className={cn(
-                      "flex items-center justify-center min-w-[22px] h-5.5 px-2 rounded-lg text-[11px] font-bold",
-                      isActive
-                        ? "bg-blue-600 dark:bg-blue-500 text-white shadow-sm"
-                        : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                    )}>
-                      {item.badge}
-                    </span>
-                  ) : (
-                    <ChevronRight className={cn(
-                      "h-4 w-4 transition-all duration-200",
-                      isActive 
-                        ? "opacity-100 translate-x-0 text-blue-600 dark:text-blue-400" 
-                        : "opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0 text-slate-400"
-                    )} />
-                  )}
+                  <ChevronRight className={cn(
+                    "h-4 w-4 transition-all duration-200",
+                    isActive 
+                      ? "opacity-100 translate-x-0 text-blue-600 dark:text-blue-400" 
+                      : "opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0 text-slate-400"
+                  )} />
                 </div>
               </Link>
             );
@@ -202,36 +172,6 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
-      {/* AI Assistant Callout */}
-      <div className="relative mx-4 mt-6 mb-2">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-[1px]">
-          <div className="relative rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 p-4">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400/20 dark:bg-blue-400/10 rounded-full blur-2xl"></div>
-            <div className="relative flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-900 dark:text-white mb-1">
-                  AI Assistant Ready
-                </p>
-                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-                  Get instant predictions and insights powered by advanced ML models
-                </p>
-                <Button 
-                  size="sm" 
-                  className="h-7 text-[11px] font-semibold bg-white dark:bg-slate-950 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm"
-                >
-                  Try Now
-                  <Zap className="ml-1.5 h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      
     </div>
   );
 }

@@ -82,7 +82,7 @@ export default function DataExportSettings() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['doctor', 'researcher']}>
+    <ProtectedRoute allowedRoles={['doctor']}>
       <div className="space-y-6">
         {/* Header Info */}
         <Card className="border-blue-200 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-950/20">

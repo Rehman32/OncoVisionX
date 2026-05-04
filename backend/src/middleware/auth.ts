@@ -9,7 +9,7 @@ declare global {
             user? : {
                 userId : string;
                 email : string;
-                role : 'admin' | 'doctor' | 'researcher'
+                role : 'admin' | 'doctor'
             }
         }
     }
@@ -54,7 +54,7 @@ export const protect =async (req:Request,res:Response,next:NextFunction) :Promis
 };
 
 //authorize based on user roles
-export const authorize = (...roles: ('admin' | 'doctor' | 'researcher')[]) => {
+export const authorize = (...roles: ('admin' | 'doctor')[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
      
     if (!req.user) {

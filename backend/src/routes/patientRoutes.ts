@@ -15,8 +15,8 @@ const router = express.Router();
 router.use(protect);
 
 // List & detail
-router.get('/', authorize('admin', 'doctor', 'researcher'), getPatients);
-router.get('/:id', authorize('admin', 'doctor', 'researcher'), getPatientById);
+router.get('/', authorize('admin', 'doctor'), getPatients);
+router.get('/:id', authorize('admin', 'doctor'), getPatientById);
 
 // Create & update (admin + doctor)
 router.post(

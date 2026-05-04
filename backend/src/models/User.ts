@@ -7,7 +7,7 @@ export interface IUser extends Document {
   password: string;
   firstName: string;
   lastName: string;
-  role: "admin" | "doctor" | "researcher";
+  role: "admin" | "doctor";
   phoneNumber?: string;
   licenseNumber?: string;
   institution?: string;
@@ -62,7 +62,7 @@ const UserSchema = new Schema<IUser, IUserModel>({
   role: {
     type: String,
     enum: {
-      values: ["admin", "doctor", "researcher"],
+      values: ["admin", "doctor"],
       messages: "{VALUE} is not a valid role",
     },
     default: "doctor",

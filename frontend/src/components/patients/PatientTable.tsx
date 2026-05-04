@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MoreVertical, Eye, Edit, FileText, Trash, Plus } from 'lucide-react';
 import { Patient } from '@/types/patient';
 import { format } from 'date-fns';
+import { useAuthStore } from '@/store/authStore';
 
 interface PatientTableProps {
   data: Patient[];
@@ -40,6 +41,7 @@ export default function PatientTable({
   pagination,
 }: PatientTableProps) {
   const router = useRouter();
+  const { user } = useAuthStore();
 
   if (isError) {
     return (
@@ -167,15 +169,17 @@ export default function PatientTable({
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/dashboard/predictions/new?patientId=${patient._id}`);
-                          }}
-                        >
-                          <FileText className="mr-2 h-4 w-4" />
-                          New Prediction
-                        </DropdownMenuItem>
+                        {user?.role === 'doctor' && (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/dashboard/predictions/new?patientId=${patient._id}`);
+                            }}
+                          >
+                            <FileText className="mr-2 h-4 w-4" />
+                            New Prediction
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={(e) => {

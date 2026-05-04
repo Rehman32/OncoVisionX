@@ -22,7 +22,7 @@ export default function DoctorSettings() {
 
   useEffect(() => {
     if (settings?.roleSpecific?.clinicalPreferences) {
-      setLocalSettings({ ...settings.roleSpecific.clinicalPreferences });
+      setLocalSettings({ ...settings?.roleSpecific?.clinicalPreferences });
     }
   }, [settings]);
 
@@ -136,7 +136,7 @@ export default function DoctorSettings() {
       <div className="flex justify-end gap-3">
         <Button 
           variant="outline" 
-          onClick={() => setLocalSettings({ ...settings.roleSpecific?.clinicalPreferences })}
+          onClick={() => setLocalSettings({ ...settings?.roleSpecific?.clinicalPreferences })}
         >
           Cancel
         </Button>

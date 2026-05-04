@@ -5,7 +5,8 @@ import {
   createUser,
   updateUser,
   deactivateUser,
-  resetUserPassword
+  resetUserPassword,
+  getDoctors
 } from '../controllers/userController';
 import { protect, authorize } from '../middleware/auth';
 import { auditLogger } from '../middleware/auditLogger';
@@ -17,6 +18,9 @@ router.use(protect);
 
 // List users (admin only)
 router.get('/', authorize('admin'), getUsers);
+
+// List doctors (any authenticated user, for dropdowns)
+router.get('/doctors', getDoctors);
 
 // Create user (admin only)
 router.post(

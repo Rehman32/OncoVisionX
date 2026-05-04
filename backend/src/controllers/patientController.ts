@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Patient from '../models/Patient';
 import { asyncHandler } from '../utils/asyncHandler';
 import { BadRequestError, NotFoundError } from '../utils/errors';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * @route   POST /api/patients
@@ -28,9 +29,12 @@ export const createPatient = asyncHandler(
         'firstName, lastName, dateOfBirth, sex, and anatomicalSite are required'
       );
     }
+    if (!assignedDoctor) {
+      throw new BadRequestError('assignedDoctor is required when creating a patient');
+    }
 
-    // Generate patient ID
-    const patientId = await (Patient as any).generatePatientId();
+    // Generate patient ID (UUID-based, concurrency-safe)
+    const patientId = `PAT-${uuidv4().slice(0, 8).toUpperCase()}`;
 
     const patient = await Patient.create({
       patientId,
@@ -57,7 +61,7 @@ export const createPatient = asyncHandler(
 /**
  * @route   GET /api/patients
  * @desc    Get all patients (with search and pagination)
- * @access  Admin, Doctor, Researcher
+ * @access  Admin, Doctor
  */
 export const getPatients = asyncHandler(
   async (req: Request, res: Response) => {
@@ -94,23 +98,9 @@ export const getPatients = asyncHandler(
       Patient.countDocuments(query),
     ]);
 
-    // De-identify for researchers
-    const data =
-      req.user!.role === 'researcher'
-        ? patients.map((p: any) => ({
-            _id: p._id,
-            patientId: p.patientId,
-            sex: p.sex,
-            dateOfBirth: p.dateOfBirth,
-            anatomicalSite: p.anatomicalSite,
-            isActive: p.isActive,
-            createdAt: p.createdAt,
-          }))
-        : patients;
-
     res.status(200).json({
       success: true,
-      data,
+      data: patients,
       meta: {
         total,
         page: pageNum,
@@ -123,7 +113,7 @@ export const getPatients = asyncHandler(
 /**
  * @route   GET /api/patients/:id
  * @desc    Get a single patient
- * @access  Admin, Doctor, Researcher
+ * @access  Admin, Doctor
  */
 export const getPatientById = asyncHandler(
   async (req: Request, res: Response) => {

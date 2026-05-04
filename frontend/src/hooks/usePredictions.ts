@@ -25,17 +25,20 @@ const getPrediction = async (id: string) => {
 export interface CreatePredictionPayload {
   patient: Patient;
   file: File;
+  overrides?: {
+    anatomicalSite?: string;
+  };
 }
 
-const createPrediction = async ({ patient, file }: CreatePredictionPayload) => {
+const createPrediction = async ({ patient, file, overrides }: CreatePredictionPayload) => {
   const formData = new FormData();
   formData.append('image', file);
   
-  // MANDATED API CONTRACT: Send strictly stringified JSON metadata 
+  // Send metadata with potential overrides
   formData.append('metadata', JSON.stringify({
     age: patient.age || 0,
     sex: patient.sex,
-    anatomical_site: patient.anatomicalSite
+    anatomical_site: overrides?.anatomicalSite || patient.anatomicalSite,
   }));
   
   formData.append('patientId', patient._id);
@@ -60,7 +63,7 @@ export function usePrediction(id: string) {
   return useQuery({
     queryKey: predictionKeys.detail(id),
     queryFn: () => getPrediction(id),
-    refetchInterval: false, // Poll logic removed as requests are now synchronous
+    refetchInterval: false,
   });
 }
 

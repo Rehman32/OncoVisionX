@@ -31,9 +31,6 @@ export function useDashboardStats() {
     queryFn: getDashboardStats,
     refetchInterval: 30000, // Refetch every 30 seconds
     retry: 1, // Only retry once on failure
-    onError: (error: any) => {
-      console.error('❌ Dashboard stats fetch failed:', error.response?.status, error.message);
-    }
   });
 }
 
@@ -43,8 +40,5 @@ export function useRecentActivity(limit?: number) {
     queryFn: () => getRecentActivity(limit),
     refetchInterval: 30000,
     retry: 1,
-    onError: (error: any) => {
-      console.error('❌ Activity fetch failed:', error.response?.status, error.message);
-    }
   });
 }

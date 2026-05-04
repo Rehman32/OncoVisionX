@@ -124,18 +124,10 @@ PatientSchema.virtual('age').get(function (this: IPatient) {
 });
 
 // ==================== INDEXES ====================
-PatientSchema.index({ patientId: 1 });
+// patientId unique index is auto-created by schema `unique: true`
 PatientSchema.index({ lastName: 1, firstName: 1 });
 PatientSchema.index({ assignedDoctor: 1 });
 PatientSchema.index({ isActive: 1 });
 PatientSchema.index({ createdAt: -1 });
-
-// ==================== STATICS ====================
-PatientSchema.statics.generatePatientId = async function (): Promise<string> {
-  const year = new Date().getFullYear();
-  const count = await this.countDocuments();
-  const nextId = (count + 1).toString().padStart(4, '0');
-  return `P-${year}-${nextId}`;
-};
 
 export default mongoose.model<IPatient>('Patient', PatientSchema);
